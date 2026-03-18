@@ -271,9 +271,11 @@ For full details, see the reference files. Here is the minimum to get started:
 
 ```bash
 # Install Isaac Sim (via pip, recommended for Isaac Lab)
-pip install isaacsim-rl isaacsim-replicator isaacsim-extscache-physics \
-    isaacsim-extscache-kit-sdk isaacsim-extscache-kit isaacsim-app \
-    --extra-index-url https://pypi.nvidia.com
+# For Isaac Sim 4.5 (with Isaac Lab compatibility)
+pip install 'isaacsim[all,extscache]==4.5.0' --extra-index-url https://pypi.nvidia.com
+
+# For Isaac Sim 5.x (latest)
+pip install 'isaacsim[all]' --extra-index-url https://pypi.nvidia.com
 
 # Clone Isaac Lab
 git clone https://github.com/isaac-sim/IsaacLab.git
@@ -281,6 +283,9 @@ cd IsaacLab
 
 # Create conda environment and install
 ./isaaclab.sh --install  # Linux
+
+# Alternative: pip-based installation
+pip install isaaclab isaaclab_tasks
 ```
 
 ### 2. Run a Built-in Example
@@ -385,7 +390,7 @@ When something goes wrong, work through this checklist in order:
 ### Environment Not Loading
 
 - [ ] Is Isaac Sim installed correctly? Run `python -c "from isaacsim import SimulationApp"`
-- [ ] Is Isaac Lab installed? Run `python -c "import omni.isaac.lab"`
+- [ ] Is Isaac Lab installed? Run `python -c "import isaaclab"`
 - [ ] Are GPU drivers up to date? Run `nvidia-smi`
 - [ ] Is there enough disk space? Isaac Sim needs ~30 GB free
 - [ ] Is the URDF/USD model accessible at the configured path?

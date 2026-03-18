@@ -139,7 +139,7 @@ private:
 
 **Transform chain:** `map → odom → base_link`
 
-### REP 144 — Parameter Naming
+### Parameter Naming Conventions
 
 - Parameters use `snake_case`
 - Nested parameters use `.` separator: `motor.max_speed`, `lidar.range_min`
@@ -267,7 +267,7 @@ if __name__ == '__main__':
 - [ ] C++: snake_case functions/variables, PascalCase classes, trailing `_` for members
 - [ ] All units in meters, radians, seconds (REP 103)
 - [ ] Standard frame names used: map, odom, base_link (REP 105)
-- [ ] Parameters are snake_case with `.` nesting (REP 144)
+- [ ] Parameters are snake_case with `.` nesting
 - [ ] Node names are descriptive snake_case
 - [ ] Topic names are hierarchical snake_case
 - [ ] Package names are lowercase with underscores

@@ -159,7 +159,7 @@ for standard sensors.
 | Camera (RGB) | `camera` | `gz.msgs.Image` | `sensor_msgs/msg/Image` | Set `<width>`, `<height>`, `<format>` |
 | Depth Camera | `depth_camera` | `gz.msgs.Image` (depth) | `sensor_msgs/msg/Image` | Outputs 32-bit float depth image |
 | RGBD Camera | `rgbd_camera` | `gz.msgs.Image` + depth | `sensor_msgs/msg/Image` x2 | Combined color + depth |
-| Contact Sensor | `contact` | `gz.msgs.Contacts` | `gazebo_msgs/msg/ContactsState` | Requires `<collision>` element name |
+| Contact Sensor | `contact` | `gz.msgs.Contacts` | `ros_gz_interfaces/msg/Contacts` | Requires `<collision>` element name |
 | Altimeter | `altimeter` | `gz.msgs.Altimeter` | `sensor_msgs/msg/FluidPressure` | Height above ground |
 | Magnetometer | `magnetometer` | `gz.msgs.Magnetometer` | `sensor_msgs/msg/MagneticField` | Simulated compass |
 | Air Pressure | `air_pressure` | `gz.msgs.FluidPressure` | `sensor_msgs/msg/FluidPressure` | Barometric pressure |
@@ -255,7 +255,7 @@ testing sensor pipelines.
 
 ## Common Gazebo Harmonic Packages (ROS 2)
 
-Install these for ROS 2 Humble + Gazebo Harmonic integration:
+Install these for ROS 2 Jazzy + Gazebo Harmonic integration:
 
 ```bash
 # Core Gazebo Harmonic (if not installed with ROS)

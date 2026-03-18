@@ -524,10 +524,10 @@ Jetson uses the NVIDIA container runtime to give Docker containers access to the
 docker info | grep -i nvidia
 
 # Run with GPU access
-docker run --runtime nvidia -it nvcr.io/nvidia/l4t-pytorch:r36.2.0-pth2.1-py3
+docker run --runtime nvidia -it nvcr.io/nvidia/l4t-pytorch:r36.4.0-pth2.5-py3
 
 # Or use --gpus flag
-docker run --gpus all -it nvcr.io/nvidia/l4t-pytorch:r36.2.0-pth2.1-py3
+docker run --gpus all -it nvcr.io/nvidia/l4t-pytorch:r36.4.0-pth2.5-py3
 ```
 
 ### Isaac ROS Docker Containers
@@ -535,29 +535,29 @@ docker run --gpus all -it nvcr.io/nvidia/l4t-pytorch:r36.2.0-pth2.1-py3
 NVIDIA provides pre-built Docker images for Isaac ROS:
 
 ```bash
-# Pull Isaac ROS base image
-docker pull nvcr.io/isaac/ros:humble-ros2_humble-20240301
+# Pull Isaac ROS base image (JetPack 7 / Jazzy)
+docker pull nvcr.io/isaac/ros:jazzy-ros2_jazzy-latest
 
 # Run with ROS 2 and GPU
 docker run --runtime nvidia \
     --network host \
     -v /dev:/dev \
     --privileged \
-    -it nvcr.io/isaac/ros:humble-ros2_humble-20240301
+    -it nvcr.io/isaac/ros:jazzy-ros2_jazzy-latest
 ```
 
 ### Custom Dockerfile for Vision Pipeline
 
 ```dockerfile
-# Dockerfile for YOLO inference on Jetson
-FROM nvcr.io/nvidia/l4t-pytorch:r36.2.0-pth2.1-py3
+# Dockerfile for YOLO inference on Jetson (JetPack 7 / Ubuntu 24.04)
+FROM nvcr.io/nvidia/l4t-pytorch:r36.4.0-pth2.5-py3
 
-# Install ROS 2 Humble
+# Install ROS 2 Jazzy
 RUN apt-get update && apt-get install -y \
-    ros-humble-ros-base \
-    ros-humble-cv-bridge \
-    ros-humble-vision-msgs \
-    ros-humble-image-transport \
+    ros-jazzy-ros-base \
+    ros-jazzy-cv-bridge \
+    ros-jazzy-vision-msgs \
+    ros-jazzy-image-transport \
     python3-colcon-common-extensions \
     && rm -rf /var/lib/apt/lists/*
 
@@ -569,7 +569,7 @@ COPY ./ros2_ws /workspace/ros2_ws
 WORKDIR /workspace/ros2_ws
 
 # Build
-RUN . /opt/ros/humble/setup.sh && colcon build
+RUN . /opt/ros/jazzy/setup.sh && colcon build
 
 # Entrypoint
 COPY entrypoint.sh /entrypoint.sh
@@ -581,7 +581,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 ```bash
 #!/bin/bash
-source /opt/ros/humble/setup.bash
+source /opt/ros/jazzy/setup.bash
 source /workspace/ros2_ws/install/setup.bash
 exec "$@"
 ```

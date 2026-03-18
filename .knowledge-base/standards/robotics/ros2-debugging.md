@@ -227,10 +227,10 @@ ros2 topic info /scan --verbose
 # Set log level for a specific node at launch
 ros2 run my_robot_inspection scan_processor --ros-args --log-level debug
 
-# Set log level at runtime
-ros2 service call /scan_processor/set_logger_level \
-  rcl_interfaces/srv/SetLoggerLevel \
-  "{logger_name: 'scan_processor', level: 10}"
+# Set log level at runtime (Jazzy+)
+ros2 service call /scan_processor/set_logger_levels \
+  rcl_interfaces/srv/SetLoggerLevels \
+  "{levels: [{name: 'scan_processor', level: 10}]}"
 ```
 
 **Log levels:** DEBUG=10, INFO=20, WARN=30, ERROR=40, FATAL=50

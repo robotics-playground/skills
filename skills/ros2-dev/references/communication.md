@@ -181,6 +181,7 @@ progress updates, and eventually get the result. This is built into the framewor
 ### Action Server
 
 ```python
+import asyncio
 import rclpy
 from rclpy.action import ActionServer, GoalResponse, CancelResponse
 from rclpy.node import Node
@@ -320,7 +321,7 @@ A subscriber asking for MORE guarantees than the publisher offers = no data.
 ```python
 from rclpy.qos import (
     qos_profile_sensor_data,    # Best Effort, Volatile, depth=5
-    qos_profile_system_default, # Reliable, Volatile, depth=10
+    qos_profile_system_default, # Defers all settings to RMW implementation
     QoSProfile,
     ReliabilityPolicy,
     DurabilityPolicy,

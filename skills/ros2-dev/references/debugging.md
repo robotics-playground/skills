@@ -323,10 +323,10 @@ ros2 run my_package my_node --ros-args --log-level debug
 # Per-logger at launch time
 ros2 run my_package my_node --ros-args --log-level my_node:=debug
 
-# At runtime (change while node is running)
-ros2 service call /my_node/set_logger_level \
-  rcl_interfaces/srv/SetLoggerLevel \
-  "{logger_name: 'my_node', level: 10}"
+# At runtime (change while node is running, Jazzy+)
+ros2 service call /my_node/set_logger_levels \
+  rcl_interfaces/srv/SetLoggerLevels \
+  "{levels: [{name: 'my_node', level: 10}]}"
 # Levels: DEBUG=10, INFO=20, WARN=30, ERROR=40, FATAL=50
 ```
 

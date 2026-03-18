@@ -124,8 +124,7 @@ Use for nodes that manage hardware resources or need explicit state transitions 
 """Motor controller with managed lifecycle."""
 
 import rclpy
-from rclpy.lifecycle import Node as LifecycleNode
-from rclpy.lifecycle import State, TransitionCallbackReturn
+from rclpy.lifecycle import LifecycleNode, LifecycleState, TransitionCallbackReturn
 
 from geometry_msgs.msg import Twist
 
@@ -141,7 +140,7 @@ class MotorControllerNode(LifecycleNode):
         self._cmd_sub = None
         self._serial_port = None
 
-    def on_configure(self, state: State) -> TransitionCallbackReturn:
+    def on_configure(self, state: LifecycleState) -> TransitionCallbackReturn:
         """Load parameters and prepare hardware connection."""
         self.declare_parameter('serial_port', '/dev/ttyUSB0')
         self.declare_parameter('baud_rate', 115200)
@@ -154,7 +153,7 @@ class MotorControllerNode(LifecycleNode):
         self.get_logger().info(f'Configured: port={self._port_name}')
         return TransitionCallbackReturn.SUCCESS
 
-    def on_activate(self, state: State) -> TransitionCallbackReturn:
+    def on_activate(self, state: LifecycleState) -> TransitionCallbackReturn:
         """Open hardware connection and start accepting commands."""
         try:
             self._serial_port = self._open_serial(self._port_name, self._baud_rate)
@@ -168,14 +167,14 @@ class MotorControllerNode(LifecycleNode):
         self.get_logger().info('Motor controller activated')
         return TransitionCallbackReturn.SUCCESS
 
-    def on_deactivate(self, state: State) -> TransitionCallbackReturn:
+    def on_deactivate(self, state: LifecycleState) -> TransitionCallbackReturn:
         """Stop motors and stop accepting commands."""
         self._send_stop_command()
         self.destroy_subscription(self._cmd_sub)
         self.get_logger().info('Motor controller deactivated')
         return TransitionCallbackReturn.SUCCESS
 
-    def on_cleanup(self, state: State) -> TransitionCallbackReturn:
+    def on_cleanup(self, state: LifecycleState) -> TransitionCallbackReturn:
         """Close hardware connection and release resources."""
         if self._serial_port:
             self._serial_port.close()

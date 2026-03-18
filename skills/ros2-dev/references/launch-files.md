@@ -580,14 +580,16 @@ def generate_launch_description():
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            arguments=['0', '0', '0.1', '0', '0', '0',
-                       'base_link', 'camera_link'],
+            arguments=['--x', '0', '--y', '0', '--z', '0.1',
+                       '--yaw', '0', '--pitch', '0', '--roll', '0',
+                       '--frame-id', 'base_link', '--child-frame-id', 'camera_link'],
         ),
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            arguments=['0', '0', '0.15', '0', '0', '0',
-                       'base_link', 'lidar_link'],
+            arguments=['--x', '0', '--y', '0', '--z', '0.15',
+                       '--yaw', '0', '--pitch', '0', '--roll', '0',
+                       '--frame-id', 'base_link', '--child-frame-id', 'lidar_link'],
         ),
     ])
 
