@@ -10,7 +10,7 @@ description: >
   SingleThreadedExecutor, composable node, node composition, parameter server,
   ROS 2 workspace, overlay, underlay, package.xml, setup.py, setup.cfg, CMakeLists.txt,
   ament_cmake, ament_python, ros2 doctor, rqt, rqt_graph, RViz, rviz2, tf_tree,
-  REP 103, REP 105, REP 144, coordinate frames, base_link, odom, map, sensor frame,
+  REP 103, REP 105, coordinate frames, base_link, odom, map, sensor frame,
   the robot isn't publishing data, DDS discovery failed, topic not showing up,
   callback not firing, QoS mismatch, best effort vs reliable, transient local.
   Also trigger on implicit cues like "my node can't see the topic", "messages aren't
@@ -248,7 +248,7 @@ See individual reference files for full details. Key rules for this team:
 
 - Follow **REP 103** for units (SI) and coordinate frames (x-forward, y-left, z-up)
 - Follow **REP 105** for standard frame names (map, odom, base_link)
-- Follow **REP 144** for standard topic names where applicable
+- Follow standard ROS 2 naming conventions for topics (lowercase, namespaced)
 - Use existing message types from `std_msgs`, `sensor_msgs`, `geometry_msgs`, `nav_msgs`
   before creating custom messages
 - Prefix custom message packages with your project name -- e.g., `my_robot_msgs`
@@ -359,7 +359,7 @@ source ~/.bashrc
 
 ```bash
 # Check ROS 2 is working
-ros2 --version
+echo $ROS_DISTRO
 ros2 doctor
 
 # Run a demo

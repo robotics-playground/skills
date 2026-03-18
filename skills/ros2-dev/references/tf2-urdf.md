@@ -191,9 +191,10 @@ class SensorFramePublisher(Node):
 
 **Or use the CLI tool** (simpler for quick setup):
 ```bash
-# static_transform_publisher x y z yaw pitch roll parent child
+# static_transform_publisher with named arguments (required in Jazzy+)
 ros2 run tf2_ros static_transform_publisher \
-  0.10 0.0 0.15 0.0 -0.26 0.0 base_link camera_link
+  --x 0.10 --y 0.0 --z 0.15 --yaw 0.0 --pitch -0.26 --roll 0.0 \
+  --frame-id base_link --child-frame-id camera_link
 ```
 
 ### Dynamic Transform Publisher

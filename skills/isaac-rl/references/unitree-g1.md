@@ -3,13 +3,13 @@
 ## Hardware Overview
 
 The Unitree G1 is a humanoid robot designed for research and development. It stands about
-127 cm tall and weighs approximately 35 kg.
+132 cm tall and weighs approximately 35 kg.
 
 ### Key Specifications
 
 | Specification | Value |
 |---|---|
-| Height | ~127 cm |
+| Height | ~132 cm |
 | Weight | ~35 kg (without battery) |
 | Degrees of Freedom | 23 (standard), up to 43 (dexterous hands) |
 | Compute | NVIDIA Jetson Orin (onboard) |
@@ -241,7 +241,7 @@ Isaac Lab provides pre-configured robot models for the Unitree G1.
 ### Built-In Config
 
 ```python
-from omni.isaac.lab_assets.unitree import UNITREE_G1_CFG
+from isaaclab_assets.unitree import G1_CFG
 
 # This provides:
 # - USD model with accurate link masses and inertias
@@ -249,7 +249,7 @@ from omni.isaac.lab_assets.unitree import UNITREE_G1_CFG
 # - Default standing pose
 # - Actuator configuration
 
-robot_cfg = UNITREE_G1_CFG.replace(
+robot_cfg = G1_CFG.replace(
     prim_path="{ENV_REGEX_NS}/Robot",
 )
 ```
@@ -257,10 +257,10 @@ robot_cfg = UNITREE_G1_CFG.replace(
 ### Customizing the G1 Config
 
 ```python
-from omni.isaac.lab.actuators import ImplicitActuatorCfg
+from isaaclab.actuators import ImplicitActuatorCfg
 
 # Override actuator settings to match your specific robot
-custom_g1_cfg = UNITREE_G1_CFG.copy()
+custom_g1_cfg = G1_CFG.copy()
 custom_g1_cfg.actuators = {
     "legs": ImplicitActuatorCfg(
         joint_names_expr=[
@@ -582,8 +582,8 @@ A good first task: train the robot to stand still and maintain balance.
 Simpler than walking, verifies your environment setup is correct.
 """
 
-from omni.isaac.lab.envs import ManagerBasedRLEnvCfg
-from omni.isaac.lab.managers import (
+from isaaclab.envs import ManagerBasedRLEnvCfg
+from isaaclab.managers import (
     EventTermCfg,
     ObservationGroupCfg,
     ObservationTermCfg,
@@ -591,10 +591,10 @@ from omni.isaac.lab.managers import (
     SceneEntityCfg,
     TerminationTermCfg,
 )
-from omni.isaac.lab.utils import configclass
-import omni.isaac.lab.envs.mdp as mdp
-from omni.isaac.lab.sim import SimulationCfg
-from omni.isaac.lab_assets.unitree import UNITREE_G1_CFG
+from isaaclab.utils import configclass
+import isaaclab.envs.mdp as mdp
+from isaaclab.sim import SimulationCfg
+from isaaclab_assets.unitree import G1_CFG
 
 
 @configclass

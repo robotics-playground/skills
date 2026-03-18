@@ -328,9 +328,9 @@ on: [push, pull_request]
 
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     container:
-      image: ros:humble
+      image: ros:jazzy
     steps:
       - uses: actions/checkout@v4
         with:
@@ -344,13 +344,13 @@ jobs:
 
       - name: Build
         run: |
-          source /opt/ros/humble/setup.bash
+          source /opt/ros/jazzy/setup.bash
           cd ros2_ws
           colcon build --symlink-install
 
       - name: Test
         run: |
-          source /opt/ros/humble/setup.bash
+          source /opt/ros/jazzy/setup.bash
           source ros2_ws/install/setup.bash
           cd ros2_ws
           colcon test --return-code-on-test-failure

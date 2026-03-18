@@ -35,24 +35,15 @@ observations (joint angles, IMU), not camera images.
 
 ```bash
 # Create a conda environment
-conda create -n isaaclab python=3.10
+conda create -n isaaclab python=3.11
 conda activate isaaclab
 
 # Install Isaac Sim Python packages
-pip install isaacsim-rl isaacsim-replicator isaacsim-extscache-physics \
-    isaacsim-extscache-kit-sdk isaacsim-extscache-kit isaacsim-app \
-    --extra-index-url https://pypi.nvidia.com
+pip install 'isaacsim[all,extscache]==4.5.0' --extra-index-url https://pypi.nvidia.com
 ```
 
-**Method 2: Omniverse Launcher (for GUI exploration)**
-
-1. Download NVIDIA Omniverse Launcher from https://www.nvidia.com/omniverse
-2. Install Omniverse Launcher
-3. Inside the Launcher, install Isaac Sim from the Exchange tab
-4. Launch Isaac Sim from the Launcher
-
-For RL training, Method 1 is preferred because it integrates cleanly with Isaac Lab and
-supports headless mode. Method 2 is useful for visual scene building and debugging.
+**Note:** Install Isaac Sim via pip (Omniverse Launcher is deprecated since October 2025).
+The pip install method above is the only supported installation path for Isaac Lab RL workflows.
 
 ### Verifying Installation
 
@@ -62,7 +53,7 @@ from isaacsim import SimulationApp
 
 simulation_app = SimulationApp({"headless": True})
 
-import omni.isaac.core.utils.stage as stage_utils
+import isaacsim.core.utils.stage as stage_utils  # omni.isaac.core in Isaac Sim 4.x
 print("Isaac Sim loaded successfully")
 print(f"Stage: {stage_utils.get_current_stage()}")
 
@@ -106,12 +97,12 @@ pre-converted models for common robots including the Unitree G1.
 
 ```python
 # Loading a robot USD in Isaac Lab
-import omni.isaac.lab.sim as sim_utils
+import isaaclab.sim as sim_utils
 
 # Unitree G1 robot (pre-packaged in Isaac Lab)
-from omni.isaac.lab_assets.unitree import UNITREE_G1_CFG
+from isaaclab_assets.unitree import G1_CFG
 
-robot_cfg = UNITREE_G1_CFG.replace(prim_path="/World/Robot")
+robot_cfg = G1_CFG.replace(prim_path="/World/Robot")
 robot = robot_cfg.spawn("/World/Robot")
 ```
 
@@ -124,8 +115,8 @@ A scene in Isaac Sim contains the ground, robots, objects, lighting, and physics
 ### Minimal Scene: Ground + Robot
 
 ```python
-import omni.isaac.lab.sim as sim_utils
-from omni.isaac.lab.assets import ArticulationCfg, AssetBaseCfg
+import isaaclab.sim as sim_utils
+from isaaclab.assets import ArticulationCfg, AssetBaseCfg
 
 # Ground plane
 ground_cfg = AssetBaseCfg(
@@ -183,7 +174,7 @@ Isaac Sim uses NVIDIA PhysX 5 for physics simulation. Key parameters to understa
 ### Simulation Timestep
 
 ```python
-from omni.isaac.lab.sim import SimulationCfg
+from isaaclab.sim import SimulationCfg
 
 sim_cfg = SimulationCfg(
     dt=0.005,              # Physics timestep: 5ms = 200 Hz
@@ -216,7 +207,7 @@ decimation = 4  # 4 physics steps per RL action
 
 ```python
 # Physics material for ground
-from omni.isaac.lab.sim import RigidBodyMaterialCfg
+from isaaclab.sim import RigidBodyMaterialCfg
 
 ground_material = RigidBodyMaterialCfg(
     static_friction=1.0,    # Friction when not sliding
@@ -234,7 +225,7 @@ Isaac Sim can simulate various sensors. For locomotion, we primarily use:
 ### IMU (Inertial Measurement Unit)
 
 ```python
-from omni.isaac.lab.sensors import ImuCfg
+from isaaclab.sensors import ImuCfg
 
 imu_cfg = ImuCfg(
     prim_path="{ENV_REGEX_NS}/Robot/base_link",
@@ -246,7 +237,7 @@ imu_cfg = ImuCfg(
 ### Contact Sensors (Foot Contact)
 
 ```python
-from omni.isaac.lab.sensors import ContactSensorCfg
+from isaaclab.sensors import ContactSensorCfg
 
 foot_contact_cfg = ContactSensorCfg(
     prim_path="{ENV_REGEX_NS}/Robot/.*_foot",
@@ -258,7 +249,7 @@ foot_contact_cfg = ContactSensorCfg(
 ### Camera (for vision-based policies)
 
 ```python
-from omni.isaac.lab.sensors import CameraCfg
+from isaaclab.sensors import CameraCfg
 
 camera_cfg = CameraCfg(
     prim_path="{ENV_REGEX_NS}/Robot/head_camera",
@@ -426,15 +417,15 @@ This creates a minimal Isaac Lab scene with a Unitree G1 on flat ground:
 ```python
 """Minimal Isaac Sim scene with Unitree G1."""
 
-from omni.isaac.lab.app import AppLauncher
+from isaaclab.app import AppLauncher
 
 # Launch Isaac Sim (headless for training, GUI for debugging)
 app_launcher = AppLauncher(headless=True)
 simulation_app = app_launcher.app
 
-import omni.isaac.lab.sim as sim_utils
-from omni.isaac.lab.assets import Articulation, ArticulationCfg
-from omni.isaac.lab.sim import SimulationCfg, SimulationContext
+import isaaclab.sim as sim_utils
+from isaaclab.assets import Articulation, ArticulationCfg
+from isaaclab.sim import SimulationCfg, SimulationContext
 
 # Physics configuration
 sim_cfg = SimulationCfg(
@@ -455,9 +446,9 @@ cfg = sim_utils.DomeLightCfg(intensity=2000.0)
 cfg.func("/World/Light", cfg)
 
 # Spawn Unitree G1 robot
-from omni.isaac.lab_assets.unitree import UNITREE_G1_CFG
+from isaaclab_assets.unitree import G1_CFG
 
-robot_cfg: ArticulationCfg = UNITREE_G1_CFG.replace(
+robot_cfg: ArticulationCfg = G1_CFG.replace(
     prim_path="/World/Robot",
 )
 robot = Articulation(robot_cfg)

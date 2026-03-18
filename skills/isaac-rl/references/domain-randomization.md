@@ -37,8 +37,8 @@ The most important type of randomization for sim-to-real transfer.
 ### Isaac Lab Configuration
 
 ```python
-from omni.isaac.lab.managers import EventTermCfg
-import omni.isaac.lab.envs.mdp as mdp
+from isaaclab.managers import EventTermCfg
+import isaaclab.envs.mdp as mdp
 
 @configclass
 class EventsCfg:
@@ -349,8 +349,8 @@ Training on varied terrain produces policies that handle real-world ground irreg
 ### Terrain Types in Isaac Lab
 
 ```python
-from omni.isaac.lab.terrains import TerrainGeneratorCfg, TerrainImporterCfg
-import omni.isaac.lab.terrains as terrain_gen
+from isaaclab.terrains import TerrainGeneratorCfg, TerrainImporterCfg
+import isaaclab.terrains as terrain_gen
 
 terrain_cfg = TerrainGeneratorCfg(
     size=(8.0, 8.0),           # Terrain patch size (meters)
@@ -458,9 +458,9 @@ push_robot = EventTermCfg(
 ```python
 """Full domain randomization config for Unitree G1 walking."""
 
-from omni.isaac.lab.managers import EventTermCfg, SceneEntityCfg
-import omni.isaac.lab.envs.mdp as mdp
-from omni.isaac.lab.utils import configclass
+from isaaclab.managers import EventTermCfg, SceneEntityCfg
+import isaaclab.envs.mdp as mdp
+from isaaclab.utils import configclass
 
 
 @configclass

@@ -263,7 +263,7 @@ Configure these in Gazebo sensor plugins in your URDF/SDF files. Never test with
     QT_QPA_PLATFORM: offscreen
     GZ_SIM_RESOURCE_PATH: ${{ github.workspace }}/ros2_ws/src/my_robot_simulation/models
   run: |
-    source /opt/ros/humble/setup.bash
+    source /opt/ros/jazzy/setup.bash
     source ros2_ws/install/setup.bash
     # Run Gazebo headless with -s (server only, no GUI)
     colcon test --packages-select my_robot_inspection \

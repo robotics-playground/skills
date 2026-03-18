@@ -136,12 +136,12 @@ Isaac Lab locomotion tasks.
 ```python
 """Training script using rsl_rl with Isaac Lab."""
 
-from omni.isaac.lab.app import AppLauncher
+from isaaclab.app import AppLauncher
 app_launcher = AppLauncher(headless=True)
 simulation_app = app_launcher.app
 
 import gymnasium as gym
-from omni.isaac.lab_tasks.utils import get_checkpoint_path, parse_env_cfg
+from isaaclab_tasks.utils import get_checkpoint_path, parse_env_cfg
 from rsl_rl.runners import OnPolicyRunner
 
 # Create environment
@@ -195,11 +195,11 @@ but has more complex configuration:
 ```python
 """Training with rl_games."""
 
-from omni.isaac.lab.app import AppLauncher
+from isaaclab.app import AppLauncher
 app_launcher = AppLauncher(headless=True)
 simulation_app = app_launcher.app
 
-from omni.isaac.lab_tasks.utils.wrappers.rl_games import RlGamesGpuEnv, RlGamesVecEnvWrapper
+from isaaclab_tasks.utils.wrappers.rl_games import RlGamesGpuEnv, RlGamesVecEnvWrapper
 from rl_games.torch_runner import Runner
 
 # rl_games uses YAML config files

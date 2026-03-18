@@ -29,15 +29,15 @@ rewarded for).
 An Isaac Lab RL environment is defined by a configuration dataclass. Here is the skeleton:
 
 ```python
-from omni.isaac.lab.envs import ManagerBasedRLEnvCfg
-from omni.isaac.lab.managers import (
+from isaaclab.envs import ManagerBasedRLEnvCfg
+from isaaclab.managers import (
     ObservationGroupCfg,
     ObservationTermCfg,
     RewardTermCfg,
     TerminationTermCfg,
     SceneEntityCfg,
 )
-from omni.isaac.lab.utils import configclass
+from isaaclab.utils import configclass
 from dataclasses import MISSING
 
 @configclass
@@ -92,8 +92,8 @@ robot's internal state (proprioception). The agent receives a flat vector of flo
 ### Observation Configuration
 
 ```python
-from omni.isaac.lab.managers import ObservationGroupCfg, ObservationTermCfg
-import omni.isaac.lab.envs.mdp as mdp
+from isaaclab.managers import ObservationGroupCfg, ObservationTermCfg
+import isaaclab.envs.mdp as mdp
 
 @configclass
 class ObservationsCfg:
@@ -177,8 +177,8 @@ typically target joint positions or torques.
 ### Action Configuration (Position Control)
 
 ```python
-from omni.isaac.lab.managers import ActionTermCfg
-import omni.isaac.lab.envs.mdp as mdp
+from isaaclab.managers import ActionTermCfg
+import isaaclab.envs.mdp as mdp
 
 @configclass
 class ActionsCfg:
@@ -266,8 +266,8 @@ tasks. The forward velocity reward is already dense (reward every step the robot
 ### Reward Configuration
 
 ```python
-from omni.isaac.lab.managers import RewardTermCfg
-import omni.isaac.lab.envs.mdp as mdp
+from isaaclab.managers import RewardTermCfg
+import isaaclab.envs.mdp as mdp
 
 @configclass
 class RewardsCfg:
@@ -345,7 +345,7 @@ import torch
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from omni.isaac.lab.envs import ManagerBasedRLEnv
+    from isaaclab.envs import ManagerBasedRLEnv
 
 def foot_clearance_reward(env: ManagerBasedRLEnv, threshold: float = 0.05) -> torch.Tensor:
     """Reward for lifting feet during swing phase.
@@ -407,12 +407,12 @@ by name:
 
 ```python
 import gymnasium as gym
-from omni.isaac.lab.envs import ManagerBasedRLEnv
+from isaaclab.envs import ManagerBasedRLEnv
 
 # Register the environment
 gym.register(
     id="MyLab-G1-Walking-v0",
-    entry_point="omni.isaac.lab.envs:ManagerBasedRLEnv",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
     kwargs={
         "env_cfg_entry_point": "my_locomotion.config.g1_walking:G1WalkingEnvCfg",
     },
@@ -476,9 +476,9 @@ rewards = env.reward_buf          # Shape: (num_envs,), device='cuda:0'
 The scene defines what exists in the simulation: robots, ground, sensors, objects.
 
 ```python
-from omni.isaac.lab.scene import InteractiveSceneCfg
-from omni.isaac.lab.assets import ArticulationCfg, AssetBaseCfg
-import omni.isaac.lab.sim as sim_utils
+from isaaclab.scene import InteractiveSceneCfg
+from isaaclab.assets import ArticulationCfg, AssetBaseCfg
+import isaaclab.sim as sim_utils
 
 @configclass
 class G1SceneCfg(InteractiveSceneCfg):
@@ -497,7 +497,7 @@ class G1SceneCfg(InteractiveSceneCfg):
     )
 
     # Unitree G1 robot
-    robot: ArticulationCfg = UNITREE_G1_CFG.replace(
+    robot: ArticulationCfg = G1_CFG.replace(
         prim_path="{ENV_REGEX_NS}/Robot",
     )
 
@@ -520,8 +520,8 @@ Episodes end (and reset) when certain conditions are met. Isaac Lab distinguishe
 - **Truncation**: Episode ends because of time limit (max episode length)
 
 ```python
-from omni.isaac.lab.managers import TerminationTermCfg
-import omni.isaac.lab.envs.mdp as mdp
+from isaaclab.managers import TerminationTermCfg
+import isaaclab.envs.mdp as mdp
 
 @configclass
 class TerminationsCfg:
@@ -596,8 +596,8 @@ Putting it all together -- a complete environment config for Unitree G1 walking:
 ```python
 """Unitree G1 walking environment configuration."""
 
-from omni.isaac.lab.envs import ManagerBasedRLEnvCfg
-from omni.isaac.lab.managers import (
+from isaaclab.envs import ManagerBasedRLEnvCfg
+from isaaclab.managers import (
     EventTermCfg,
     ObservationGroupCfg,
     ObservationTermCfg,
@@ -605,10 +605,10 @@ from omni.isaac.lab.managers import (
     SceneEntityCfg,
     TerminationTermCfg,
 )
-from omni.isaac.lab.utils import configclass
-import omni.isaac.lab.envs.mdp as mdp
-from omni.isaac.lab.sim import SimulationCfg
-from omni.isaac.lab_assets.unitree import UNITREE_G1_CFG
+from isaaclab.utils import configclass
+import isaaclab.envs.mdp as mdp
+from isaaclab.sim import SimulationCfg
+from isaaclab_assets.unitree import G1_CFG
 
 
 @configclass

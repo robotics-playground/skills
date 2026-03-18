@@ -96,7 +96,7 @@ ros2 run ros_gz_bridge parameter_bridge --ros-args -p config_file:=bridge_config
 | Clock | `gz.msgs.Clock` | `rosgraph_msgs/msg/Clock` | GZ_TO_ROS |
 | Odometry | `gz.msgs.Odometry` | `nav_msgs/msg/Odometry` | GZ_TO_ROS |
 | TF | `gz.msgs.Pose_V` | `tf2_msgs/msg/TFMessage` | GZ_TO_ROS |
-| Contacts | `gz.msgs.Contacts` | `gazebo_msgs/msg/ContactsState` | GZ_TO_ROS |
+| Contacts | `gz.msgs.Contacts` | `ros_gz_interfaces/msg/Contacts` | GZ_TO_ROS |
 
 ---
 
