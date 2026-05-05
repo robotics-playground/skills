@@ -1,0 +1,35 @@
+@startuml data-flow-sensing
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam roundCorner 8
+
+left to right direction
+
+rectangle "**Firmware**" as fw #FEF3C7 {
+  component "<IMU>" as imu #FDE68A
+  component "<encoder>" as enc #FDE68A
+  component "<lidar>" as lidar #FDE68A
+  component "<sonar/ToF>" as prox #FDE68A
+}
+
+component "micro_ros_\nagent" as agent #D1D5DB
+component "<project>_ldlidar" as ld #93C5FD
+component "ekf_node" as ekf #93C5FD
+component "async_slam_\ntoolbox" as slam #93C5FD
+component "downstream\n(Nav2, BT)" as out #DBEAFE
+
+imu  --> agent : "/imu/data_raw\n<size:9>100 Hz, BestEffort</size>"
+enc  --> agent : "/odom/unfiltered\n<size:9>50 Hz, BestEffort</size>"
+prox --> agent : "/sonar/* · /tof/scan\n<size:9>4–10 Hz, BestEffort</size>"
+
+lidar --> ld : "<size:9>UART → UDP :8889 (~7 KB/s)</size>"
+ld    --> slam : "/scan\n<size:9>5 Hz, BestEffort</size>"
+
+agent --> ekf  : "/imu · /odom_unfiltered"
+ekf   --> slam : "/odom + TF\n<size:9>50 Hz, Reliable</size>"
+slam  --> out  : "/map · /odom"
+
+@enduml

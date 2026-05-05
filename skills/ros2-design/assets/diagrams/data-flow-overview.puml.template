@@ -1,0 +1,53 @@
+@startuml data-flow-overview
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam roundCorner 8
+skinparam rectangle {
+  BorderThickness 2
+  FontStyle bold
+}
+
+left to right direction
+
+rectangle "**SENSORS**\n<size:9><sensor list></size>" as SENSORS #FEF3C7
+rectangle "**ACTUATORS**\n<size:9><actuator list></size>" as ACTUATORS #FED7AA
+rectangle "**SPINAL CORD**\n<size:9>firmware Layer-1 + <project>_safety + hardware</size>" as SPINAL #FEE2E2
+rectangle "**CEREBELLUM**\n<size:9>EKF · SLAM · Nav2 · BT.CPP</size>" as CEREBELLUM #DBEAFE
+rectangle "**CORTEX**\n<size:9><project>_mission · (P2) <project>_perception · (P3) <project>_llm</size>" as CORTEX #E0E7FF
+rectangle "**INFRASTRUCTURE**\n<size:9>micro_ros_agent · foxglove_bridge · operator · storage</size>" as INFRA #F3F4F6
+
+' Sensing flow (data IN)
+SENSORS    --> SPINAL     : "<size:10>raw I/O</size>"
+SPINAL     --> CEREBELLUM : "<size:10>micro-ROS topics\n/imu · /odom · /scan · /sonar · /tof</size>"
+CEREBELLUM --> CORTEX     : "<size:10>fused state\n/odom · /map · /mission/status</size>"
+
+' Control flow (commands OUT)
+CORTEX     --> CEREBELLUM : "<size:10>mission goals\n/navigate_to_pose</size>"
+CEREBELLUM --> SPINAL     : "<size:10>/cmd_vel\n<size:9>safety-filtered</size></size>"
+SPINAL     --> ACTUATORS  : "<size:10>PWM · I²C · GPIO</size>"
+
+' Safety override (red = hard)
+SPINAL <-[#DC2626,bold]-> CEREBELLUM : "<size:10>/emergency_stop ⇆ /safety/override</size>"
+
+' Infra cross-cuts
+INFRA  <--> CORTEX     : "<size:10>operator commands · status</size>"
+INFRA  <-- CEREBELLUM  : "<size:10>visualisation</size>"
+INFRA  <-- SPINAL      : "<size:10>diagnostics · audit</size>"
+
+note bottom of SPINAL
+**Two physical homes:** firmware (atomic safety,
+< 200 ms) + PC-side `<project>_safety` package (policy).
+**Hard thresholds** never overridable; **soft thresholds**
+audit-logged via /safety/override.
+end note
+
+note bottom of INFRA
+Carries every cross-layer message —
+micro_ros_agent (UDP :8888), foxglove_bridge (WS :8765),
+audit logs / saved maps / rosbag2 on disk.
+end note
+
+@enduml

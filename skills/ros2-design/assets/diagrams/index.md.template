@@ -1,0 +1,120 @@
+# Diagrams
+
+PlantUML sources + rendered SVGs for the <project> architecture. Each `.puml` has a sibling `.svg` checked in so the diagrams render directly in GitHub / VS Code / Foxglove without re-running PlantUML.
+
+## Files
+
+One diagram per file, each renders independently:
+
+| Diagram | Source | Rendered |
+|---|---|---|
+| Node map (layer geography) | [`node-map.puml`](node-map.puml) | [`node-map.svg`](node-map.svg) |
+| Data-flow overview (read first) | [`data-flow-overview.puml`](data-flow-overview.puml) | [`data-flow-overview.svg`](data-flow-overview.svg) |
+| Sensing chain | [`data-flow-sensing.puml`](data-flow-sensing.puml) | [`data-flow-sensing.svg`](data-flow-sensing.svg) |
+| Control chain | [`data-flow-control.puml`](data-flow-control.puml) | [`data-flow-control.svg`](data-flow-control.svg) |
+| Safety chain | [`data-flow-safety.puml`](data-flow-safety.puml) | [`data-flow-safety.svg`](data-flow-safety.svg) |
+| Operator + persistence | [`data-flow-operator.puml`](data-flow-operator.puml) | [`data-flow-operator.svg`](data-flow-operator.svg) |
+| TF tree | [`data-flow-tf.puml`](data-flow-tf.puml) | [`data-flow-tf.svg`](data-flow-tf.svg) |
+
+---
+
+## 1. Node map — layer geography
+
+What nodes exist and which layer they sit in. Trunk arrows only.
+
+<img src="node-map.svg" alt="Node map" width="100%">
+
+Source: [`node-map.puml`](node-map.puml)
+
+---
+
+## 2. Data-flow overview — layer-to-layer flows
+
+Read this first. Six layer rectangles, one arrow per inter-layer flow. Answers *"how does the system work"* in one glance, no node-grain detail.
+
+<img src="data-flow-overview.svg" alt="Data-flow overview" width="100%">
+
+Source: [`data-flow-overview.puml`](data-flow-overview.puml)
+
+---
+
+## 3. Sensing chain — Sensors → Spinal Cord → Cerebellum
+
+How sensor readings become `/odom`, `/scan`, and `/map`.
+
+<img src="data-flow-sensing.svg" alt="Sensing chain" width="100%">
+
+Source: [`data-flow-sensing.puml`](data-flow-sensing.puml)
+
+---
+
+## 4. Control chain — Cortex → Cerebellum → Spinal Cord → Actuators
+
+How a mission YAML becomes motor PWM.
+
+<img src="data-flow-control.svg" alt="Control chain" width="100%">
+
+Source: [`data-flow-control.puml`](data-flow-control.puml)
+
+---
+
+## 5. Safety chain — inside the Spinal Cord
+
+Battery thresholds, `/safety/override`, sensor faults, hardware cutoff.
+
+<img src="data-flow-safety.svg" alt="Safety chain" width="100%">
+
+Source: [`data-flow-safety.puml`](data-flow-safety.puml)
+
+---
+
+## 6. Operator I/O + persistence — Infrastructure detail
+
+Foxglove WebSocket, gamepad teleop, and where audit logs / saved maps land.
+
+<img src="data-flow-operator.svg" alt="Operator I/O" width="100%">
+
+Source: [`data-flow-operator.puml`](data-flow-operator.puml)
+
+---
+
+## 7. TF tree — Infrastructure detail
+
+URDF → `robot_state_publisher` → `/tf_static` + `/tf`, with `ekf_node` adding `odom→base_link` and SLAM/AMCL adding `map→odom`.
+
+<img src="data-flow-tf.svg" alt="TF tree" width="100%">
+
+Source: [`data-flow-tf.puml`](data-flow-tf.puml)
+
+---
+
+## Why one file per diagram
+
+`node-map.puml` answers **"what nodes exist and which layer do they sit in"**. The six `data-flow-*.puml` files answer **"what data moves through the system on which path"**.
+
+`data-flow-overview.puml` is the layer-grain entry point. The five detail files each zoom into one slice of the overview and show actual nodes + topic names + rates. Each canvas stays under 10 arrows with no crossings.
+
+One file per diagram (instead of multi-page) so:
+- Each renders independently — no need to extract a specific page.
+- Each can be embedded directly in markdown via image link (as done above).
+- Editing one diagram doesn't touch the others' git history.
+
+## Rendering
+
+\`\`\`bash
+plantuml -tsvg *.puml
+plantuml -tsvg data-flow-overview.puml   # just one
+plantuml -tpng *.puml                     # PNG for slides
+\`\`\`
+
+After editing any `.puml`, re-run `plantuml -tsvg <file>.puml` and commit the regenerated `.svg` so the embedded previews above stay in sync.
+
+## Reading order
+
+1. **Node map** — orient yourself in the layer geography.
+2. **Data-flow overview** — see the layer-to-layer flows.
+3. Pick the **detail diagram** matching whatever you're touching.
+
+The detail diagrams are *zoom-ins* on one slice of the overview — go to the overview first, then drill in.
+
+Each per-node spec under [`../nodes/`](../nodes/) cross-references the relevant detail diagram.

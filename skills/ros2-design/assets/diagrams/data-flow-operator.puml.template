@@ -1,0 +1,35 @@
+@startuml data-flow-operator
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam roundCorner 8
+
+left to right direction
+
+actor "Operator\n(Foxglove Studio)" as op #DDD6FE
+component "joy_node +\nteleop_twist_joy" as joy #D1D5DB
+component "foxglove_\nbridge" as fgb #D1D5DB
+component "mission_\norchestrator" as mo #A5B4FC
+component "bt_executor" as bte #93C5FD
+component "power_manager\n_node" as pm #FCA5A5
+component "async_slam_\ntoolbox" as slam #93C5FD
+component "micro_ros_\nagent" as agent #D1D5DB
+
+storage "Mission YAML\nSaved maps\nAudit logs\nRosbag2" as fs #F3F4F6
+
+op  --> fgb : "<size:9>ws://host:8765</size>"
+op  --> mo  : "/mission/{load,start,...}\n<size:9>via Foxglove panel</size>"
+op  --> joy : "<size:9>gamepad input</size>"
+joy --> agent : "/cmd_vel\n<size:9>gamepad profile</size>"
+
+fgb <-- mo  : "/mission/status\n<size:9>DECISION_QOS</size>"
+fgb <-- bte : "/bt/active_node"
+fgb <-- agent : "<size:9>all sensor topics</size>"
+
+mo   --> fs : "MissionEvent JSONL"
+pm   --> fs : "override audit"
+slam --> fs : "map.pgm + .yaml"
+
+@enduml

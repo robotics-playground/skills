@@ -1,0 +1,43 @@
+@startuml data-flow-safety
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam roundCorner 8
+
+left to right direction
+
+component "Battery ADC\n(firmware)" as batt #FDE68A
+component "<BMS>\n(<cutoff>)" as bms #FCA5A5
+component "micro_ros_\nagent" as agent #D1D5DB
+component "power_manager\n_node" as pm #FCA5A5
+component "threshold_\nmanager_node" as tm #FCA5A5
+component "health_node" as hn #FCA5A5
+component "bt_executor" as bte #93C5FD
+component "nav2_controller" as ctrl #93C5FD
+
+batt -[#DC2626,bold]-> bms : "<size:9>hardware cutoff</size>"
+batt --> agent             : "/battery_voltage\n<size:9>1 Hz, Reliable</size>"
+agent --> pm               : "/battery_voltage"
+
+pm  -[#DC2626,bold]-> bte   : "/emergency_stop\n<size:9>< 50 ms</size>"
+pm  -[#DC2626,bold]-> ctrl  : "/cmd_vel zero-vel"
+pm  --> bte                 : "/battery/state · /abort_mission\n<size:9>DECISION_QOS</size>"
+bte --> pm                  : "/safety/override\n<size:9>service</size>"
+pm  <-> tm                  : "<size:9>registry · audit log</size>"
+
+agent --> hn                : "<size:9>liveness probe</size>"
+hn    --> bte               : "/sensor_fault · /diagnostics\n<size:9>1 Hz</size>"
+
+note right of pm
+**Hard thresholds** (never overridable)
+battery_emergency · BMS · emergency_stop
+
+**Soft thresholds** (audit-logged)
+battery_return · max_speed · cmd_vel_timeout
+motor_stall_window · sensor_timeout
+obstacle_stop_distance · quality_gate (P2)
+end note
+
+@enduml

@@ -1,0 +1,29 @@
+@startuml data-flow-control
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam roundCorner 8
+
+left to right direction
+
+component "mission_\norchestrator" as mo #A5B4FC
+component "bt_executor\n(BT.CPP)" as bte #93C5FD
+component "nav2_bt_\nnavigator" as nbt #93C5FD
+component "nav2_planner\n+ controller" as nav2 #93C5FD
+component "nav2_collision\n_monitor" as cm #93C5FD
+component "micro_ros_\nagent" as agent #D1D5DB
+component "Firmware\nMotor PID" as pid #FDE68A
+component "<motor driver>\n+ <wheels>" as motors #FB923C
+
+mo  --> bte  : "MissionStatus · waypoint"
+bte --> mo   : "GetNextWaypoint\n<size:9>service</size>"
+bte --> nbt  : "/navigate_to_pose\n<size:9>action goal</size>"
+nbt --> nav2 : "ComputePath · FollowPath"
+nav2 --> cm  : "/cmd_vel_nav\n<size:9>20 Hz</size>"
+cm  --> agent : "/cmd_vel\n<size:9>safety-filtered</size>"
+agent --> pid : "<size:9>micro-ROS</size>"
+pid --> motors : "<size:9>PWM 50 Hz</size>"
+
+@enduml

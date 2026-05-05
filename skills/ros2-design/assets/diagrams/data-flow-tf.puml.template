@@ -1,0 +1,34 @@
+@startuml data-flow-tf
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam roundCorner 8
+
+left to right direction
+
+component "URDF\n(<project>_description)" as urdf #F3F4F6
+component "robot_state_\npublisher" as rsp #D1D5DB
+component "Firmware <joint>\n/joint_states" as joint #FDE68A
+component "ekf_node\n(odom→base_link)" as ekf #93C5FD
+component "async_slam_\ntoolbox\n(map→odom)" as slam #93C5FD
+queue "/tf_static" as tfs #F3F4F6
+queue "/tf" as tf #F3F4F6
+
+urdf  --> rsp : "<size:9>robot_description</size>"
+joint --> rsp : "/joint_states\n<size:9>2 Hz</size>"
+rsp   --> tfs : "<size:9>fixed frames</size>"
+rsp   --> tf  : "<size:9>dynamic joints</size>"
+ekf   --> tf  : "<size:9>odom→base_link · 50 Hz</size>"
+slam  --> tf  : "<size:9>map→odom · ~5 Hz</size>"
+
+note bottom
+**Frame chain (REP-103/105):**
+map → odom → base_link →
+  imu_link · lidar_link · sonar_*_link · camera_link
+  <other rigid frames per project>
+  <joint_link> (revolute) → <child frames>
+end note
+
+@enduml
