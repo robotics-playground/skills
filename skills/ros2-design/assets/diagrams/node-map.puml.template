@@ -1,0 +1,166 @@
+' Template — fill in <project>-specific node names + add/remove nodes per project.
+' Rules: no `title` line. Layer colours fixed. Each topic arrow includes frequency.
+@startuml node-map
+!theme plain
+
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam roundCorner 8
+skinparam padding 6
+skinparam component {
+  BorderThickness 1
+  FontSize 11
+}
+skinparam rectangle {
+  BorderThickness 2
+  FontStyle bold
+}
+
+' =====================================================
+' SENSORS
+' =====================================================
+rectangle "**SENSORS**\n<size:9><MCU>-S3 hardware peripherals — physical I/O</size>" as SENSORS #FEF3C7 {
+  component "<sensor 1>\n<size:9><protocol> · <rate></size>" as <s1> #FDE68A
+  component "<sensor 2>\n<size:9><protocol></size>" as <s2> #FDE68A
+  ' ... add per project
+}
+
+' =====================================================
+' ACTUATORS
+' =====================================================
+rectangle "**ACTUATORS**\n<size:9><MCU> outputs — physical motion + state display</size>" as ACTUATORS #FED7AA {
+  component "<motor driver>\n<size:9>...</size>" as motors #FB923C
+  ' ... add per project
+}
+
+' =====================================================
+' SPINAL CORD
+' =====================================================
+rectangle "**SPINAL CORD** (Reactive layer)\n<size:9>Hard real-time safety · fault-isolated</size>" as SPINAL #FEE2E2 {
+
+  rectangle "<size:10>**Firmware (<MCU>)**\n<size:9>< 200 ms response · WiFi-independent</size>" as SPINAL_FW #FECACA {
+    component "<project>_firmware\n<size:9>Layer 1 atomic e-stop\ncmd_vel timeout\nbattery emergency\nmotor stall watchdog</size>" as fw_safe #FCA5A5
+  }
+
+  rectangle "<size:10>**PC-side (<project>_safety)**\n<size:9>Policy tier · fault-isolated process group</size>" as SPINAL_PC #FECACA {
+    component "power_manager\n_node\n<size:9>BatteryState\nsoft return policy</size>" as pm #FCA5A5
+    component "threshold_\nmanager_node\n<size:9>/safety/override\naudit log</size>" as tm #FCA5A5
+    component "health_node\n<size:9>liveness watchdog\n/sensor_fault</size>" as hn #FCA5A5
+  }
+
+  rectangle "<size:10>**Hardware (Layer 3)**" as SPINAL_HW #FEE2E2 {
+    component "<BMS or hardware e-stop>\n<size:9><cutoff voltage / behaviour></size>" as bms #FCA5A5
+  }
+}
+
+' =====================================================
+' CEREBELLUM
+' =====================================================
+rectangle "**CEREBELLUM** (Sequencing layer)\n<size:9>Sensor fusion · path execution · BT orchestration</size>" as CEREBELLUM #DBEAFE {
+
+  rectangle "<size:10>**Sensor Fusion**" as CER_FUSION #BFDBFE {
+    component "ekf_node\n<size:9>encoder + IMU\nrobot_localization 2D</size>" as ekf #93C5FD
+    component "<project>_ldlidar\n<size:9>UDP → /scan</size>" as ld #93C5FD
+  }
+
+  rectangle "<size:10>**SLAM & Localisation**" as CER_SLAM #BFDBFE {
+    component "async_slam_\ntoolbox_node\n<size:9>mapping mode</size>" as slam #93C5FD
+    component "amcl\n<size:9>localisation mode</size>" as amcl #93C5FD
+    component "map_server\n<size:9>static map</size>" as ms #93C5FD
+  }
+
+  rectangle "<size:10>**Nav2 Stack**" as CER_NAV2 #BFDBFE {
+    component "nav2_planner_\nserver\n<size:9>NavFn global plan</size>" as plan #93C5FD
+    component "nav2_controller_\nserver\n<size:9>DWB local · 20 Hz</size>" as ctrl #93C5FD
+    component "nav2_collision_\nmonitor\n<size:9>Layer 2 safety</size>" as cm #93C5FD
+    component "nav2_bt_\nnavigator\n<size:9>/navigate_to_pose\naction server</size>" as nbt #93C5FD
+    component "nav2_lifecycle_\nmanager" as nlc #93C5FD
+  }
+
+  rectangle "<size:10>**BT Orchestration**" as CER_BT #BFDBFE {
+    component "bt_executor_\nnode\n<size:9>BT.CPP 4.x · 10 Hz tick\nN custom BT nodes</size>" as bte #93C5FD
+  }
+}
+
+' =====================================================
+' CORTEX
+' =====================================================
+rectangle "**CORTEX** (Deliberative layer)\n<size:9>Mission planning · perception · long-horizon reasoning</size>" as CORTEX #E0E7FF {
+
+  rectangle "<size:10>**Mission (Phase 1)**" as CORTEX_MISSION #C7D2FE {
+    component "mission_\norchestrator\n_node\n<size:9>YAML loader\n/mission/* services</size>" as mo #A5B4FC
+  }
+
+  rectangle "<size:10>**Perception (Phase 2)**" as CORTEX_PERCEPT #C7D2FE {
+    component "<project>_perception\n_node\n<size:9>Camera → ML inference</size>" as percept #C7D2FE
+  }
+
+  rectangle "<size:10>**LLM (Phase 3)**" as CORTEX_LLM #C7D2FE {
+    component "<project>_llm_\nbehavior_node\n<size:9>cloud LLM</size>" as llm #E0E7FF
+  }
+}
+
+' =====================================================
+' INFRASTRUCTURE
+' =====================================================
+rectangle "**INFRASTRUCTURE**\n<size:9>Transport · TF · operator UI</size>" as INFRA #F3F4F6 {
+  component "micro_ros_\nagent\n<size:9>XRCE-DDS UDP :8888</size>" as agent #D1D5DB
+  component "robot_state_\npublisher\n<size:9>URDF → /tf_static · /tf</size>" as rsp #D1D5DB
+  component "foxglove_\nbridge\n<size:9>WebSocket :8765</size>" as fgb #D1D5DB
+}
+
+' =====================================================
+' OPERATOR I/O
+' =====================================================
+rectangle "**OPERATOR I/O**" as OPIO #F3E8FF {
+  component "joy_node +\nteleop_twist_\njoy" as joy #DDD6FE
+  actor "Operator\n<size:9>Foxglove Studio</size>" as op #DDD6FE
+}
+
+' =====================================================
+' Trunk flows only — see data-flow-*.puml for details
+' =====================================================
+
+' Sensing trunk
+<s1>    --> fw_safe   : "<size:9>sensors</size>"
+fw_safe --> ekf       : "<size:9>micro-ROS</size>"
+ekf     --> bte       : "<size:9>/odom · /scan</size>"
+bte     --> mo        : "<size:9>GetNextWaypoint</size>"
+
+' Action trunk
+mo      --> bte       : "<size:9>MissionStatus</size>"
+bte     --> ctrl      : "<size:9>NavigateToPose</size>"
+ctrl    --> motors    : "<size:9>/cmd_vel</size>"
+
+' Spinal Cord (red = hard safety)
+pm  -[#DC2626,bold]-> bte : "<size:9>/emergency_stop</size>"
+bte --> pm                : "<size:9>/safety/override</size>"
+
+' Operator
+op  --> mo
+
+' Phase 2 / 3 (dotted)
+percept -[#999,dotted]-> bte : "<size:9>P2</size>"
+llm     -[#999,dotted]-> mo  : "<size:9>P3</size>"
+
+' Layout hints
+SENSORS    -[hidden]down- ACTUATORS
+SPINAL     -[hidden]right- CEREBELLUM
+CEREBELLUM -[hidden]right- CORTEX
+INFRA      -[hidden]down- OPIO
+
+legend bottom
+|<#FEF3C7> SENSORS        | Hardware peripherals on the MCU |
+|<#FED7AA> ACTUATORS      | Motor/servo/display/LED outputs |
+|<#FEE2E2> SPINAL CORD    | Reactive · firmware atomic + <project>_safety + hardware |
+|<#DBEAFE> CEREBELLUM     | Sequencing · sensor fusion + Nav2 + BT.CPP |
+|<#E0E7FF> CORTEX         | Deliberative · mission + perception + LLM |
+|<#F3F4F6> INFRASTRUCTURE | Transport · TF · visualisation |
+|<#F3E8FF> OPERATOR I/O   | Foxglove + gamepad |
+|—— red ——               | Hard safety path (never overridable) |
+|· · · dotted · · ·       | Phase 2 / Phase 3 future |
+endlegend
+
+@enduml

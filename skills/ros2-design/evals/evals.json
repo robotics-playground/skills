@@ -1,0 +1,27 @@
+{
+  "skill_name": "ros2-design",
+  "evals": [
+    {
+      "id": 1,
+      "name": "deliverybot-no-firmware-tier",
+      "prompt": "I have a PRD, architecture doc, and hardware doc for a small indoor delivery rover at `~/.claude/skills/ros2-design/evals/fixtures/rover-deliverybot/`. The architecture has explicitly chosen NOT to adopt the three-layer biology metaphor and NOT to use a BT.CPP mission system — it's a flat-package design with a Python mission orchestrator and a tablet REST API. There's also no firmware tier (everything is USB-attached to a Pi 5). Please produce the full design tree (designs/nodes/, designs/interfaces/, designs/diagrams/, designs/package-structure.md) for this project. Render the SVGs and embed them in diagrams/index.md.",
+      "expected_output": "A complete designs/ tree saved under the rover-deliverybot fixture directory. Should NOT impose biology metaphor or BT pattern. Should NOT include a firmware-tier node spec. Should include a tablet REST API package (since the architecture mandates it, this skill should adapt rather than hard-code a Foxglove-only model). All FRs from the PRD mapped. Diagrams produced and rendered.",
+      "files": [
+        "evals/fixtures/rover-deliverybot/prd.md",
+        "evals/fixtures/rover-deliverybot/architecture.md",
+        "evals/fixtures/rover-deliverybot/hardware.md"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "pipebot-firmware-and-jetson-no-bt",
+      "prompt": "I have inputs for a tethered sewer-pipe inspection crawler at `~/.claude/skills/ros2-design/evals/fixtures/pipe-inspector/`. STM32 firmware tier + Jetson onboard processing. No BT, no three-layer architecture, no override mechanism. Single phase. Produce the full design tree (designs/) with rendered SVGs.",
+      "expected_output": "Design tree with: a firmware-tier node spec (STM32 micro-ROS over Ethernet), a Jetson-side perception node, a custom-Python mission node, the standard Nav2/SLAM/EKF set, custom pipebot_interfaces, a small package-structure (~5-6 packages), and the 7 diagrams. Should NOT pad with phase-2 placeholders or biology metaphor.",
+      "files": [
+        "evals/fixtures/pipe-inspector/prd.md",
+        "evals/fixtures/pipe-inspector/architecture.md",
+        "evals/fixtures/pipe-inspector/hardware.md"
+      ]
+    }
+  ]
+}
