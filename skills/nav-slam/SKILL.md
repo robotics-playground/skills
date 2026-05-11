@@ -1,27 +1,7 @@
 ---
 name: nav-slam
 description: >
-  Expert guidance for SLAM (Simultaneous Localization and Mapping) and Nav2 navigation in ROS 2.
-  Use this skill whenever the user is working with: "SLAM", "slam_toolbox", "Nav2", "navigation2",
-  "navigation stack", "costmap", "costmap_2d", "path planning", "path planner", "controller",
-  "DWB", "MPPI", "regulated pure pursuit", "behavior tree", "BT", "waypoint following",
-  "waypoint follower", "obstacle avoidance", "map", "map_server", "map_saver", "occupancy grid",
-  "localization", "AMCL", "amcl", "particle filter", "robot_localization", "EKF", "sensor fusion",
-  "recovery behavior", "navigate_to_pose", "navigate_through_poses", "follow_waypoints",
-  "planner_server", "controller_server", "behavior_server", "bt_navigator", "inflation layer",
-  "obstacle layer", "voxel layer", "static layer", "global costmap", "local costmap",
-  "nav2_bringup", "nav2_params", "lifecycle manager", "bond", "map_to_odom", "odom_to_base",
-  "tf tree", "transform", "robot footprint", "goal tolerance", "NavFn", "Smac", "Theta*",
-  "SmacHybrid", "SmacLattice", "Smac2D", "DWB controller", "MPPI controller",
-  "RegulatedPurePursuit", "spin recovery", "backup recovery", "clear costmap recovery",
-  "wait recovery", "navigate_to_pose_w_replanning_and_recovery", "ComputePathToPose",
-  "FollowPath", "ClearEntireCostmap", "Spin", "BackUp", "Wait",
-  "the robot keeps hitting walls", "map looks wrong", "loop closure failed", "robot is lost",
-  "navigation fails", "path not found", "costmap too aggressive", "robot oscillates",
-  "robot gets stuck", "robot won't move", "robot spins in place", "map drifts",
-  "localization jumps", "costmap not clearing", "obstacles not appearing in costmap",
-  "narrow passage", "tunnel navigation", "corridor navigation", "inspection navigation",
-  "confined space navigation", "wall following", "corridor centering".
+  Expert guidance for SLAM and Nav2 navigation in ROS 2 — slam_toolbox, AMCL, robot_localization, costmaps, planners, and controllers. Use when working with "SLAM", "slam_toolbox", "Nav2", "navigation2", "costmap", "costmap_2d", "path planning", "controller", "DWB", "MPPI", "behavior tree", "AMCL", "amcl", "particle filter", "robot_localization", "EKF", "navigate_to_pose", "navigate_through_poses", "planner_server", "controller_server", "bt_navigator", "inflation layer", "obstacle layer", "voxel layer", "static layer", "global costmap", "local costmap", "nav2_bringup", "nav2_params", "lifecycle manager", "tf tree", "occupancy grid", "map_server", "map_saver", "recovery behavior", or when the robot hits walls, gets lost, the map drifts, navigation fails, costmaps are wrong, or path planning breaks down.
 ---
 
 # Navigation and SLAM Specialist

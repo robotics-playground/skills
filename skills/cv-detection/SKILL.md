@@ -1,27 +1,7 @@
 ---
 name: cv-detection
 description: >
-  Expert guidance for computer vision and object detection in ROS 2 using OpenCV, YOLO, and depth cameras.
-  Use this skill whenever the user is working with: OpenCV, cv2, cv_bridge, image_transport, compressed image,
-  YOLO, YOLOv8, YOLOv11, ultralytics, object detection, defect detection, crack detection, anomaly detection,
-  TensorRT, ONNX, inference, neural network, deep learning, training, dataset, annotation, labeling,
-  camera, camera calibration, camera_info, image_raw, depth camera, OAK-D, OAK-D Lite, DepthAI, depthai_ros,
-  point cloud, PointCloud2, PCL, depth image, depth_to_pointcloud, depth to costmap, stereo vision, disparity,
-  image processing, color detection, edge detection, contour, blob detection, template matching, feature matching,
-  image segmentation, semantic segmentation, instance segmentation, panoptic segmentation,
-  bounding box, detection result, vision_msgs, Detection2D, Detection2DArray,
-  model training, transfer learning, fine-tuning, data augmentation, hyperparameter tuning,
-  precision, recall, mAP, F1 score, confusion matrix, IoU, NMS, non-maximum suppression,
-  Roboflow, CVAT, Label Studio, annotation tool,
-  defect detection, corrosion detection, anomaly detection, surface inspection,
-  industrial inspection, visual inspection, quality control,
-  Jetson, Jetson Orin, Jetson Nano, JetPack, Isaac ROS, CUDA, cuDNN, TensorRT optimization,
-  multi-camera, camera synchronization, image stitching, panoramic view,
-  ROS 2 image pipeline, sensor_msgs/Image, sensor_msgs/CompressedImage,
-  the model isn't detecting anything, inference is too slow, camera image is distorted,
-  depth is noisy, point cloud is empty, model accuracy is low, too many false positives,
-  detections are jittery, camera not publishing, image is green/purple tinted,
-  YOLO export failed, TensorRT conversion error, out of memory during inference.
+  Expert guidance for computer vision and object detection in ROS 2 — OpenCV, YOLO, depth cameras, and training pipelines. Use when working with OpenCV, cv2, cv_bridge, image_transport, YOLO, YOLOv8, YOLOv11, ultralytics, object detection, defect detection, anomaly detection, TensorRT, ONNX, inference, camera calibration, OAK-D, DepthAI, depthai_ros, point cloud, PCL, vision_msgs, Detection2D, sensor_msgs/Image, Jetson Orin, Isaac ROS, CUDA, or when a camera image is distorted, inference is slow, detections are missing, or a model needs training or annotation.
 ---
 
 # Computer Vision & Object Detection for ROS 2

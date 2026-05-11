@@ -1,25 +1,7 @@
 ---
 name: gazebo-sim
 description: >
-  Expert guidance for Gazebo Harmonic (Gazebo 8) simulation for ROS 2 robotics development.
-  Use this skill whenever the user is working with: Gazebo, gz sim, simulation, SDF, world file,
-  sensor plugin, physics engine, ros_gz_bridge, ros_gz_sim, spawn model, gz topic, gz service,
-  physics tuning, simulation performance, sensor noise, mesh collision, inertia calculation,
-  model sinks through floor, robot flies away, exploding joints, simulation too slow,
-  Gazebo crashes, model not appearing, sensor not publishing, ros_gz bridge not working,
-  SDF format, model.sdf, world.sdf, Gazebo plugin, contact sensor, IMU plugin, LiDAR plugin,
-  camera plugin, depth camera plugin, GPU ray sensor, differential drive, tracked vehicle,
-  Gazebo Harmonic, gz-sim, gz-physics, gz-rendering, gz-sensors, gz-transport, DART physics,
-  Bullet physics, TPE physics, ground plane, lighting, sky, gravity, physics step size,
-  real-time factor, URDF to SDF, collision geometry, visual geometry, joint types, friction,
-  damping, spring stiffness, GZ_SIM_RESOURCE_PATH, gz model, gz launch, simulation world,
-  inspection simulation, custom world, indoor simulation, custom lighting simulation,
-  spawn robot in Gazebo, bridge topics, use_sim_time, clock synchronization, cmd_vel simulation,
-  joint state publisher simulation, sensor data bridge, launch file Gazebo ROS 2,
-  tracked robot model, mesh STL DAE OBJ, inertia tensor, center of mass, collision not defined,
-  model invisible, sensor frame wrong, sensor rate wrong, physics step time, RTF,
-  Gazebo GUI visualization, collision shape display, joint visualization, frame visualization,
-  gz log, verbosity level, Gazebo troubleshooting, simulation debugging.
+  Expert guidance for Gazebo Harmonic (Gazebo 8) simulation for ROS 2 — SDF worlds, physics, sensor plugins, and ros_gz_bridge. Use when working with Gazebo, gz sim, simulation, SDF, world file, ros_gz_bridge, ros_gz_sim, spawn model, physics engine, sensor plugin, camera plugin, LiDAR plugin, IMU plugin, GPU ray sensor, differential drive, tracked vehicle, DART physics, Bullet physics, URDF to SDF, collision geometry, inertia tensor, friction, damping, or when a model sinks through the floor, flies away, joints explode, simulation is slow, sensors don't publish, or the bridge to ROS 2 isn't working.
 ---
 
 # Gazebo Harmonic Simulation Guide
@@ -233,7 +215,7 @@ or switching to headless mode for algorithm development.
 |--------|----------|------------|
 | **DART** (default) | General robotics, articulated bodies, accurate contacts | Slower than Bullet for large scenes |
 | **Bullet** | Large environments, many objects, gaming-style physics | Less accurate joint constraints |
-| **TPE** (Trivial Physics Engine) | Non-physics testing, kinematic-only scenarios | No dynamics, no gravity, no collisions |
+| **TPE** (Trivial Physics Engine) | Non-physics testing, kinematic-only scenarios | No contact forces or joint constraints, no friction; use for pure sensing pipelines |
 
 **Recommendation:** Start with DART (the default). Only switch to Bullet if you have
 performance issues with many objects, or TPE if you only need kinematic motion for
