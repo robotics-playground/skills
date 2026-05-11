@@ -291,6 +291,92 @@ export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
 ---
 
+### micro-ROS + Docker: Topics Not Appearing in `ros2 topic list`
+
+This is a multi-layer failure mode with three independent root causes. Work through them in order.
+
+#### Root cause 1 — Wrong DDS domain (most common)
+
+`ROS_DOMAIN_ID` env var is **ignored** by the XRCE bridge inside `micro_ros_agent`. The bridge creates Fast DDS participants using the `domain_id` sent by the firmware in the XRCE `CREATE PARTICIPANT` request — and the firmware defaults to domain 0.
+
+**Diagnosis:** scan all domains from the sim container:
+```bash
+for d in 0 1 2 3 42; do
+  echo "=== DOMAIN $d ===" && \
+  docker exec tank-sim bash -c "source /opt/ros/jazzy/setup.bash && CYCLONEDDS_URI='' ROS_DOMAIN_ID=$d ros2 topic list --no-daemon 2>/dev/null | grep -v '^/parameter\|^/rosout'"
+done
+```
+If `/heartbeat` appears on domain 0 but the stack uses domain 42, the firmware is using domain 0.
+
+**Fix (firmware side — authoritative):** use `rcl_init_options_set_domain_id()` before `rclc_support_init_with_options()`:
+```cpp
+#include <rcl/init_options.h>
+
+rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+rcl_init_options_init(&init_options, allocator);
+rcl_init_options_set_domain_id(&init_options, 42);   // ← must match ROS_DOMAIN_ID
+rmw_init_options_t* rmw_options = rcl_init_options_get_rmw_init_options(&init_options);
+rmw_uros_options_set_client_key(client_key, rmw_options);
+rclc_support_init_with_options(&support, 0, nullptr, &init_options, &allocator);
+rcl_init_options_fini(&init_options);
+```
+
+**Alternative (Docker side):** set `XRCE_DOMAIN_ID_OVERRIDE=42` on the agent container AND send `domain_id=255` (`UXR_CLIENT_DOMAIN_ID_TO_OVERRIDE_WITH_ENV`) from firmware. The firmware approach is cleaner.
+
+#### Root cause 2 — Network interface mismatch (shared-namespace Docker)
+
+When using `network_mode: "service:agent"` (shared network namespace), the micro-ros-agent entrypoint generates `/tmp/disable_fastdds_shm.xml` with no `interfaceWhiteList` — Fast DDS binds to **all interfaces** including `eth0`. If Cyclone DDS is configured to use `lo` only (a common "localhost-only" config), they're on different interfaces and SPDP multicast never reaches Cyclone DDS.
+
+**Diagnosis:** test with Cyclone DDS unrestricted:
+```bash
+docker exec tank-sim bash -c "source /opt/ros/jazzy/setup.bash && CYCLONEDDS_URI='' ros2 topic list --no-daemon 2>/dev/null"
+```
+If the topic appears here but not with your `CYCLONEDDS_URI`, the interface is the problem.
+
+**Fix:** change `cyclonedds.xml` to use `eth0` (the container's shared interface), not `lo`:
+```xml
+<General>
+  <Interfaces>
+    <NetworkInterface name="eth0" priority="default" multicast="true"/>
+  </Interfaces>
+  <AllowMulticast>true</AllowMulticast>
+</General>
+```
+
+#### Root cause 3 — Entrypoint overrides FASTRTPS_DEFAULT_PROFILES_FILE
+
+`microros/micro-ros-agent:jazzy` sets `MICROROS_DISABLE_SHM=1` and its entrypoint (`/micro-ros_entrypoint.sh`) generates `/tmp/disable_fastdds_shm.xml` at startup, then overwrites `FASTRTPS_DEFAULT_PROFILES_FILE` in the agent process environment. Any `FASTRTPS_DEFAULT_PROFILES_FILE` you set in `docker-compose.yml` is silently replaced.
+
+**Diagnosis:**
+```bash
+docker exec tank-agent cat /proc/$(pgrep micro_ros_agent)/environ | tr '\0' '\n' | grep FASTRTPS
+# Will show /tmp/disable_fastdds_shm.xml, not your file
+```
+
+**Consequence:** custom Fast DDS XML profiles (unicast initial peers, interfaceWhiteList) are ignored. The agent always uses the entrypoint-generated profile, which has plain UDPv4 on all interfaces.
+
+**Fix options:**
+- Patch the entrypoint (complex, brittle across image updates) — generally avoid
+- Rely on the firmware `rcl_init_options_set_domain_id()` fix (root cause 1) so domain is correct, and fix `cyclonedds.xml` to match Fast DDS's interface (root cause 2)
+- Set `ROS_LOCALHOST_ONLY=1` only if you want the entrypoint to apply `disable_fastdds_shm_localhost_only.xml` — but this also overrides `CYCLONEDDS_URI` for CLI tools, causing `rmw_create_node: failed to create domain`
+
+#### XRCE session stability — client_key
+
+If topics appear briefly then vanish, the XRCE session is churning. A random `client_key` per boot creates a new DDS participant on each reconnect; the old participant lingers past DDS liveliness timeouts, causing graph churn.
+
+**Fix:** derive `client_key` from a stable MAC address:
+```cpp
+#include <esp_mac.h>
+uint8_t mac[6];
+esp_read_mac(mac, ESP_MAC_WIFI_STA);
+uint32_t client_key = (uint32_t)mac[2] << 24 | (uint32_t)mac[3] << 16
+                    | (uint32_t)mac[4] << 8  | (uint32_t)mac[5];
+rmw_uros_options_set_client_key(client_key, rmw_options);
+```
+A stable key causes the agent to log `session re-established` (instant) instead of `session created` (triggers full RTPS discovery cycle).
+
+---
+
 ## 6. Logging
 
 ### Python Logging API

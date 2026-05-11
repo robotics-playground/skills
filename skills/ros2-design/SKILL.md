@@ -60,7 +60,7 @@ Read the three inputs. Build a working list of:
 - **All custom packages** referenced in the architecture or epics (anything matching `<project>_<purpose>` — e.g. `<project>_safety`, `<project>_mission`, `<project>_perception`).
 - **All nodes** referenced anywhere — custom *and* off-the-shelf (Nav2 stack nodes, `slam_toolbox`, `robot_localization`, `foxglove_bridge`, `joy_node`, vendor drivers).
 - **All custom message/service/action types** mentioned anywhere
-- **The firmware tier** if there is one (ESP32, STM32, Pico W, Arduino, …) — even though firmware isn't a colcon package, it gets a node spec because it appears in the ROS 2 graph as a single XRCE-DDS participant.
+- **The firmware tier** if there is one (ESP32, STM32, Pico W, Arduino, …) — even though firmware isn't a colcon package, it gets a node spec because it appears in the ROS 2 graph as a single XRCE-DDS participant. **Critical design constraint:** the XRCE bridge in `micro_ros_agent` creates DDS participants using the `domain_id` sent in the XRCE `CREATE PARTICIPANT` request — `ROS_DOMAIN_ID` env var is ignored by the bridge. The firmware node spec must explicitly call `rcl_init_options_set_domain_id(&init_options, <domain>)` to join the correct DDS domain. Document this as a required parameter in the firmware node spec.
 - **Phase tagging** — which nodes ship in which phase. P2/P3 nodes get a "placeholder" spec, not full detail.
 
 Confirm this list with the user before authoring. Misses here are expensive to fix later.
@@ -136,6 +136,8 @@ This document describes the colcon workspace. Use the template at `assets/packag
 12. **Validation checklist** — every dimension checked
 
 Read `references/package-structure-rules.md` for traceability discipline (no orphan FRs, no duplicate ownership).
+
+> **micro-ROS + Docker interface alignment:** If the stack uses `network_mode: "service:agent"` (shared namespace), the micro-ros-agent's Fast DDS participant binds to all container interfaces including `eth0`. Cyclone DDS in the sim container must be configured to use `eth0` (not `lo`) in `cyclonedds.xml` — otherwise they're on different interfaces and RTPS SPDP multicast never reaches Cyclone DDS. Document the required `cyclonedds.xml` interface in the package-structure deployment section.
 
 ### Step 5 — Write the diagrams
 
