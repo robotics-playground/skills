@@ -211,6 +211,8 @@ These are the most common mistakes made by developers new to ROS 2.
 | "No executable found" with `ros2 run` | Missing entry point in `setup.py` or `setup.cfg` | Add console_scripts entry point; run `colcon build` again |
 | Transform lookup fails with "Could not find a connection" | Missing tf2 broadcaster or frame name typo | Check `ros2 run tf2_tools view_frames`; verify frame names |
 | Node can't find another node's topics | Different `ROS_DOMAIN_ID` or DDS discovery issue | Ensure same `ROS_DOMAIN_ID`; check `ROS_LOCALHOST_ONLY`; check firewall |
+| micro-ROS topics missing from `ros2 topic list` (Docker) | Three independent causes — see debugging.md micro-ROS section | (1) Firmware domain 0 ≠ stack domain: use `rcl_init_options_set_domain_id()` in firmware. (2) Cyclone DDS on `lo`, Fast DDS on `eth0`: change cyclonedds.xml to `eth0`. (3) Agent entrypoint overrides `FASTRTPS_DEFAULT_PROFILES_FILE` silently. |
+| micro-ROS topics appear then vanish | XRCE session churn from random `client_key` | Derive `client_key` from MAC address via `rmw_uros_options_set_client_key()` — stable key = instant `re-established` instead of full discovery cycle |
 | `colcon build` succeeds but changes don't take effect | Forgot to source the workspace overlay | Run `source install/setup.bash` after every build |
 | Launch file fails with "Package not found" | Package not built or workspace not sourced | Build with `colcon build`, then source `install/setup.bash` |
 | Message type shows as "unknown" | Custom message package not built or not sourced | Build the message package first; source workspace; rebuild dependent packages |
