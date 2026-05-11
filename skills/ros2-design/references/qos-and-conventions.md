@@ -55,11 +55,13 @@ Enumerate rejection reasons. Examples for `OverrideThreshold.srv`: `"hard_thresh
 
 ## Standard ROS 2 types — use unchanged, never wrap
 
+> **Important:** Before designing any custom interface, read `references/standard-ros2-types.md` to check whether a standard type already exists. Custom types add build complexity and reduce interoperability.
+
 ```
 geometry_msgs/Twist · PoseStamped · Pose2D · PoseWithCovarianceStamped
 nav_msgs/Odometry · OccupancyGrid · Path
 sensor_msgs/Imu · LaserScan · Range · JointState · Image · CameraInfo · BatteryState
-std_msgs/Float32 · Bool · UInt8 · String · Empty
+std_msgs/Float32 · Bool · UInt8 · String · Empty · Header
 std_srvs/srv/Trigger · Empty
 nav2_msgs/action/{NavigateToPose, NavigateThroughPoses, FollowPath}
 nav2_msgs/srv/{LoadMap, ManageLifecycleNodes}
@@ -69,6 +71,8 @@ diagnostic_msgs/DiagnosticArray
 tf2_msgs/TFMessage
 slam_toolbox/srv/{SaveMap, SerializePoseGraph}
 ```
+
+For the full catalogue by domain (which type to use for IMU, LIDAR, battery, GPS, etc.), see `references/standard-ros2-types.md`.
 
 If you find yourself reaching for a custom type that has a `std_msgs` / `sensor_msgs` / `geometry_msgs` equivalent, stop and reconsider.
 
