@@ -50,7 +50,7 @@ field1: value
 field2: value
 \`\`\`
 
-(Repeat the schema + example block for each new type. For types already shown in another file, reference that file.)
+(Repeat the schema + example block for each new type. For types already shown in another file, reference that file. For standard ROS 2 types like `sensor_msgs/Imu` or `std_msgs/Bool`, use the type as-is — do not paste the schema; just link to `references/standard-ros2-types.md`.)
 
 ---
 

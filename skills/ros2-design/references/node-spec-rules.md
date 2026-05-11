@@ -52,12 +52,16 @@
 
 ## Schema inlining rule
 
-A custom message or standard ROS message schema is shown **once**, the first time it appears in a node file. Subsequent uses just reference the earlier file. Example:
+A custom message or standard ROS message schema is shown **once**, the first time it appears in a node file. Subsequent uses just reference the earlier file. For standard ROS 2 types (`sensor_msgs/Imu`, `std_msgs/Bool`, etc.), link to `references/standard-ros2-types.md` instead of pasting the schema. Example:
 
 > ### nav_msgs/Odometry schema
 > See [`ekf_node.md`](ekf_node.md) §Published Topics for the full schema. EKF-only `/odom` populates `pose.position.x/y` … (this node's specifics).
+>
+> For standard types like `sensor_msgs/Imu` and `geometry_msgs/Twist`, see [`references/standard-ros2-types.md`](references/standard-ros2-types.md) for the canonical field list.
 
 This keeps individual files readable without exploding the total page count when 8 nodes all subscribe to `/odom`.
+
+**Before designing a custom message type**, always check `references/standard-ros2-types.md` — it catalogues every standard ROS 2 type by domain. Custom types add build complexity and break interoperability with off-the-shelf tools (Foxglove, Nav2, slam_toolbox).
 
 ## Examples — at least one per type
 

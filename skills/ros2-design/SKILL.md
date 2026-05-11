@@ -88,6 +88,8 @@ When in doubt, ask the user with a yes/no question. Don't proceed under assumpti
 
 Always start here. The custom message and service schemas are the load-bearing dependency for every node spec. If you write the node specs first, you'll discover schema mismatches halfway through and have to backtrack.
 
+**Before creating any custom type, read `references/standard-ros2-types.md`** — it catalogues every standard ROS 2 type by domain (sensor_msgs, std_msgs, geometry_msgs, nav_msgs, vision_msgs, etc.). Custom types add build complexity and reduce interoperability. Only create one when standard types genuinely cannot represent the data.
+
 For each custom interface package (often just one):
 
 1. Create `interfaces/index.md` — file catalogue + standard ROS 2 types used unchanged.
@@ -210,7 +212,8 @@ End with three things:
 | File | When to read |
 |---|---|
 | `references/three-layer-pattern.md` | Architecture mentions layers, biology metaphor, or Spinal Cord/Cerebellum/Cortex |
-| `references/qos-and-conventions.md` | Authoring any topic/service spec |
+| `references/qos-and-conventions.md` | Authoring any topic/service/spec |
+| `references/standard-ros2-types.md` | **New interface design** — always check for existing standard types before creating custom ones |
 | `references/node-spec-rules.md` | Authoring node files, especially edge cases (firmware bridges, off-the-shelf nodes, placeholders) |
 | `references/package-structure-rules.md` | Writing the `package-structure.md` |
 | `references/diagram-style.md` | Authoring or reviewing PlantUML files |
