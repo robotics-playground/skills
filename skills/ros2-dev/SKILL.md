@@ -2,21 +2,19 @@
 name: ros2-dev
 description: >
   Expert guidance for ROS 2 (Jazzy) development in Python (rclpy) and C++ (rclcpp).
-  Use this skill whenever the user is working with: ROS 2, ROS2, ros2, rclpy, rclcpp,
-  colcon, ament, launch file, topic, service, action server, action client, QoS,
-  parameter, lifecycle node, tf2, URDF, Xacro, sensor_msgs, geometry_msgs, nav_msgs,
-  std_msgs, DDS, Fast-DDS, Cyclone DDS, ros2 run, ros2 launch, ros2 topic, ros2 node,
-  ros2 service, ros2 param, ros2 bag, callback group, executor, MultiThreadedExecutor,
-  SingleThreadedExecutor, composable node, node composition, parameter server,
-  ROS 2 workspace, overlay, underlay, package.xml, setup.py, setup.cfg, CMakeLists.txt,
-  ament_cmake, ament_python, ros2 doctor, rqt, rqt_graph, RViz, rviz2, tf_tree,
-  REP 103, REP 105, coordinate frames, base_link, odom, map, sensor frame,
-  the robot isn't publishing data, DDS discovery failed, topic not showing up,
-  callback not firing, QoS mismatch, best effort vs reliable, transient local.
-  Also trigger on implicit cues like "my node can't see the topic", "messages aren't
-  arriving", "transform lookup failed", "colcon build fails", "launch file not working",
-  "how do I publish sensor data", "how do I make two nodes talk", "robot not moving",
-  "which message type for", "how to test a ROS node", or "ros2 bag not recording".
+  Use whenever the user works with ROS 2 nodes, topics, services, actions, QoS,
+  parameters, lifecycle nodes, executors, callback groups, launch files, colcon/ament
+  builds, package.xml/setup.py, tf2, URDF/Xacro, DDS (Fast-DDS, Cyclone DDS), or ros2
+  CLI tools (run, launch, topic, node, service, param, bag, doctor). Also trigger on
+  implicit cues: "my node can't see the topic", "messages aren't arriving", "callback
+  not firing", "QoS mismatch", "transform lookup failed", "colcon build fails", "launch
+  file not working", "which message type for", "how do I make two nodes talk", "robot
+  not moving", "how to test a ROS node". ALSO use for ROS 2 + Gazebo simulation
+  debugging -- whenever the user mentions Gazebo, gz sim, ros_gz_bridge, use_sim_time,
+  /clock, sim-to-real, or reports "the laser scan drifts when the robot turns", "the
+  map gets corrupted", "odom doesn't match", "the robot tips over in Gazebo", "the scan
+  is stuck", or any case where a ROS 2 graph and a physics simulator disagree -- even
+  if they don't say "ROS 2" explicitly.
 ---
 
 # ROS 2 Development Companion
@@ -29,6 +27,8 @@ description: >
 > - Coordinate frames, tf2, URDF, Xacro --> `references/tf2-urdf.md`
 > - CLI tools, rqt, RViz, DDS, logging, ros2 bag --> `references/debugging.md`
 > - Unit tests, integration tests, launch_testing, CI/CD --> `references/testing.md`
+> - Simulation debugging (Gazebo): odom-vs-physics, sim_time, drift --> `references/simulation-debugging.md`
+> - Ready-to-use diagnostic scripts (sim ground-truth comparison) --> `scripts/`
 
 ---
 
@@ -220,6 +220,11 @@ These are the most common mistakes made by developers new to ROS 2.
 | Node uses 100% CPU | Spin rate too high or busy-wait loop in callback | Use appropriate timer period; avoid busy-wait; check for infinite loops |
 | "Publisher already destroyed" error | Node was destroyed while publisher was still in use | Ensure proper shutdown order; use lifecycle nodes for deterministic cleanup |
 | Parameters not loading from launch file | Parameter name mismatch or wrong node name in launch | Verify parameter names match `declare_parameter()` calls; check node name |
+| (Sim) Laser scan / map / robot all "drift" when the robot turns | Drive-plugin odometry decoupled from the simulator's physics | Compare `/odom` against the simulator's ground-truth pose — see `references/simulation-debugging.md`; run `scripts/sim_motion_check.py` |
+| (Sim) Everything timestamped billions of seconds stale | A ROS-side node missing `use_sim_time` (often `robot_state_publisher` or the viewer bridge) | Check `ros2 param get /<node> use_sim_time` for **every** node — see simulation-debugging.md §5 |
+| (Sim) Scan appears stuck / lags during motion in Foxglove or RViz | Viewer's TF buffer QoS history depth too shallow for fast `/tf` | Raise the viewer bridge's max QoS history depth — see simulation-debugging.md §9 |
+| (Sim) Robot tips over or pitches shortly after spawn | Unstable footprint (e.g. two wheels on one transverse axis) | Add fore/aft passive caster support — see simulation-debugging.md §7 |
+| (Sim) Sensor frame and physics disagree by a fixed offset | URDF and a parallel SDF model have drifted apart | Unify on one URDF with `<gazebo>` extension blocks — see simulation-debugging.md §6 |
 
 ---
 
@@ -477,4 +482,5 @@ ros2 daemon stop && ros2 daemon start
 | `references/launch-files.md` | Launching multi-node systems, arguments, remapping, composition |
 | `references/tf2-urdf.md` | Coordinate frames, transforms, robot description, sensor mounting |
 | `references/debugging.md` | Diagnosing issues, CLI tools, visualization, logging, recording data |
+| `references/simulation-debugging.md` | Gazebo sim debugging — odom-vs-physics divergence, `use_sim_time` propagation, URDF `<gazebo>` extensions vs parallel SDF, physical-stability faults, sensor self-occlusion, viewer display-frame issues, the sim diagnostic ladder |
 | `references/testing.md` | Unit testing nodes, integration testing, launch tests, CI/CD |
