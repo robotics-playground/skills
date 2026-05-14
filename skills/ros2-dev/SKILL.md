@@ -225,6 +225,8 @@ These are the most common mistakes made by developers new to ROS 2.
 | (Sim) Scan appears stuck / lags during motion in Foxglove or RViz | Viewer's TF buffer QoS history depth too shallow for fast `/tf` | Raise the viewer bridge's max QoS history depth — see simulation-debugging.md §9 |
 | (Sim) Robot tips over or pitches shortly after spawn | Unstable footprint (e.g. two wheels on one transverse axis) | Add fore/aft passive caster support — see simulation-debugging.md §7 |
 | (Sim) Sensor frame and physics disagree by a fixed offset | URDF and a parallel SDF model have drifted apart | Unify on one URDF with `<gazebo>` extension blocks — see simulation-debugging.md §6 |
+| (Sim) GPU sensor topic (`/scan` etc.) exists but `ros2 topic hz` shows nothing; data appears only while `gz topic -e` runs | Lazy `ros_gz_bridge` never subscribes, so the `gpu_lidar` never ticks | Set `lazy: false` on the bridge entry — see simulation-debugging.md §8b |
+| (Sim) Whole sim runs in slow motion; all sensors/odom at a fraction of configured rate | A heavy mesh used as `<collision>` geometry tanks real-time factor | Check RTF; give `<collision>` a primitive, keep the mesh for `<visual>` — see simulation-debugging.md §8c |
 
 ---
 

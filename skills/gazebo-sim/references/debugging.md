@@ -223,6 +223,43 @@ gz model --model robot --world my_world
 | Wheel joints not matching plugin config | Verify `<left_joint>` and `<right_joint>` names match URDF/SDF |
 | Wheel friction too low | Increase `<mu>` on wheel collision surfaces |
 
+### Odometry Disagrees With the Robot's Actual Pose (the "drift" bug)
+
+**Symptoms:** The robot drives, but in a viewer the laser scan, the map,
+and/or the robot model "drift" or "rotate with the robot" — most obvious
+during turns. SLAM produces a distorted map. Nav2 cannot reach goals.
+
+This is **odometry/physics decoupling**, and it is the highest-impact,
+hardest-to-spot sim bug. A wheel-joint drive plugin (`DiffDrive`,
+`TrackedVehicle`) computes `/odom` by dead-reckoning the *commanded* wheel
+velocities — it never measures the body. If physics pushes the chassis
+independently of the wheels, `/odom` keeps reporting a clean number while the
+real body goes elsewhere. Because `/odom` is the root of the TF tree,
+*everything* built on it (scan, map, costmaps) renders faithfully — and
+faithfully wrong.
+
+**How to confirm it (do this before touching sensors or TF):** compare
+`/odom` against the simulator's ground-truth pose. Gazebo's
+`SceneBroadcaster` publishes every dynamic entity's true pose on
+`/world/<world>/dynamic_pose/info` (`gz.msgs.Pose_V`) — bridge it and diff it
+against `/odom`. If they diverge while driving, this is your bug. (The
+`ros2-dev` skill bundles ready-made diagnostic scripts for exactly this
+comparison; see its `references/simulation-debugging.md`.)
+
+**Causes and fixes:**
+
+| Cause | Fix |
+|-------|-----|
+| A non-wheel collision shape (belly plate, chassis underside) drags on the ground | Remove it, or drop its `<mu>` near zero so it slides instead of dragging |
+| Load-bearing caster spheres coplanar with the drive wheels, sharing weight | Raise casters slightly so wheels carry the load, or tune their friction so they neither drag nor let the body teeter |
+| Unstable footprint (two wheels on one transverse axis, nothing fore/aft) | Add low-friction fore/aft support so the body cannot pitch |
+| `wheel_separation` / `wheel_radius` in the plugin don't match URDF joint geometry | Make them match exactly — a mismatch makes odom wrong even when physics is stable |
+| **The drivetrain isn't the point of the sim** | Switch to `VelocityControl` + `OdometryPublisher` — body-driven control cannot decouple. See `references/robot-models.md` |
+
+The robust fix for navigation-focused sims is the last row: don't dead-reckon
+at all. Reserve wheel-joint plugins for when drivetrain fidelity *is* the
+thing under test.
+
 ---
 
 ## Sensor Debugging
@@ -250,6 +287,12 @@ gz topic -l | grep sensor
 | `<update_rate>` is 0 | Set a positive rate (e.g., 10 for LiDAR, 100 for IMU) |
 | Sensor attached to wrong link | Verify `<gazebo reference="link_name">` matches the intended link |
 | Render engine not specified for GPU sensors | Add `<render_engine>ogre2</render_engine>` to Sensors plugin |
+| GPU sensor (`gpu_lidar`, depth cam) exists in `gz topic -l` but never publishes; data appears the instant you `gz topic -e` it | GPU sensors only tick while subscribed, and the lazy ROS bridge never subscribes. Set `lazy: false` on the bridge entry — see `references/ros2-integration.md` |
+
+**Tell-tale for the lazy-bridge deadlock:** IMU/contact sensors work but every
+GPU sensor is silent. `gz topic -e -t /lidar` shows data (your echo is the
+subscriber waking it). The robot's data path is fine — the bridge just never
+asked for it.
 
 ### Sensor Data Looks Wrong
 
@@ -356,19 +399,28 @@ Simulation problem
 |   +-- Is Sensors system plugin in world? (gz-sim-sensors-system)
 |   +-- Is <always_on>true</always_on> set?
 |   +-- Does gz topic -l show the sensor topic?
-|   |   +-- YES --> Sensor works; check bridge config
 |   |   +-- NO --> Check sensor definition in model
+|   |   +-- YES, but no messages --> Does `gz topic -e` make data appear?
+|   |       +-- YES --> Lazy-bridge / GPU-sensor deadlock: set lazy:false on the bridge entry
+|   |       +-- NO  --> Sensor mis-defined; check render engine for GPU sensors
 |
 +-- ROS 2 not receiving data
 |   +-- Does gz topic show the data? (see above)
 |   +-- Is the bridge running? (`ros2 node list | grep bridge`)
 |   +-- Is the bridge config correct? (topic names, types, direction)
+|   +-- Is the bridge lazy and nothing subscribes? (set lazy:false for GPU sensors)
 |   +-- Is use_sim_time set on subscriber nodes?
 |
++-- Scan / map / robot "drift" when turning
+|   +-- Compare /odom against ground-truth pose (/world/<world>/dynamic_pose/info)
+|   |   +-- They diverge --> odometry/physics decoupling (see Physics Issues section)
+|   |   |   +-- Fix the model's footprint, or switch to VelocityControl
+|   |   +-- They agree --> not a data bug; check the viewer's display frame
+|
 +-- Simulation too slow (RTF < 0.5)
+|   +-- Check collision geometry FIRST (a heavy mesh as collision collapses RTF to ~0.04)
 |   +-- Check LiDAR ray count (reduce to 360 horizontal)
 |   +-- Check camera resolution (use 320x240 for dev)
-|   +-- Check collision geometry (replace mesh with primitives)
 |   +-- Try headless mode: gz sim -s (no GUI)
 |   +-- Try Bullet physics if many objects
 |
