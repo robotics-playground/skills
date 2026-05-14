@@ -231,6 +231,25 @@ gz sdf --inertial-stats model.sdf
 - Export meshes with Z-up orientation (Gazebo convention).
 - Set scale to meters (1 unit = 1 meter).
 
+### Never Use a Heavy Mesh as Collision Geometry
+
+This is worth calling out on its own because it is silent and catastrophic.
+A detailed mesh (a CAD-exported chassis STL is often tens of thousands of
+triangles, multiple MB) used as a `<collision>` shape forces the physics
+engine to test every contact against every triangle. There is no error — the
+simulation just *crawls*: real-time factor can drop from ~1.0 to ~0.04, and
+then everything downstream looks broken (sensors publish at a fraction of
+their configured rate, odometry stutters, control loops miss deadlines).
+
+The fix is always the same: keep the detailed mesh for `<visual>`, and give
+`<collision>` a cheap primitive (a box bounding the chassis, a cylinder, a
+sphere). The visual is what the user sees; the collision only needs to stop
+the robot passing through obstacles. They do not have to match.
+
+If you copied a robot model from another project and the sim is suddenly
+slow, check the collision geometry *first* — `gz sdf -p model.sdf` and look
+for `<mesh>` inside any `<collision>`.
+
 ---
 
 ## Joint Types
@@ -273,7 +292,69 @@ gz sdf --inertial-stats model.sdf
 
 ## Gazebo Plugins for Robot Models
 
+### Choosing a Drive Plugin — Read This First
+
+How you drive the robot determines whether odometry can ever disagree with
+physics. Pick deliberately.
+
+| Plugin | How it moves the robot | How odometry is produced | Can odom decouple from physics? |
+|--------|------------------------|--------------------------|----------------------------------|
+| `DiffDrive` / `TrackedVehicle` | Applies torque to wheel/track joints; the body moves only via wheel-ground contact | Dead-reckons the *commanded* wheel joint velocities | **Yes** — if contact is imperfect (slip, unstable footprint, a dragging collision shape), the body goes one way while odom integrates another |
+| `VelocityControl` + `OdometryPublisher` | Sets the body's twist directly from `/cmd_vel` — no wheel joints involved | `OdometryPublisher` reads the body's *actual* pose | **No** — odom is measured from the same body the plugin moves; they are equal by construction |
+
+**Default to `VelocityControl` + `OdometryPublisher`** for any robot whose
+job is navigation/SLAM testing rather than drivetrain fidelity. Wheel-joint
+plugins are physically realistic but introduce a whole class of bugs where
+`/odom` lies — and because `/odom` is the root of the TF tree, a lying `/odom`
+makes the laser scan, the map, and Nav2 all wrong, with no error anywhere.
+The symptom users report is "the scan drifts/rotates when the robot turns."
+
+Use a wheel-joint plugin (`DiffDrive`, `TrackedVehicle`) only when you
+specifically need to study traction, wheel slip, or drivetrain dynamics — and
+then expect to spend time on footprint stability and friction tuning. See
+`references/debugging.md` for diagnosing odom/physics decoupling.
+
+### Velocity Control + Odometry Publisher (Recommended for Navigation)
+
+Body-driven control. The robot has no wheel joints that bear drive load;
+`VelocityControl` sets the canonical link's twist directly, and
+`OdometryPublisher` reports the body's true pose. Add a low-friction
+center caster (and/or low-friction chassis underside) so the body slides
+cleanly without contact forces fighting the commanded twist.
+
+```xml
+<!-- Drive the body directly from /cmd_vel -->
+<gazebo>
+  <plugin filename="gz-sim-velocity-control-system"
+          name="gz::sim::systems::VelocityControl">
+    <topic>cmd_vel</topic>
+  </plugin>
+</gazebo>
+
+<!-- Publish odom from the body's actual pose -->
+<gazebo>
+  <plugin filename="gz-sim-odometry-publisher-system"
+          name="gz::sim::systems::OdometryPublisher">
+    <odom_frame>odom</odom_frame>
+    <robot_base_frame>base_footprint</robot_base_frame>
+    <odom_topic>odometry</odom_topic>
+    <tf_topic>tf</tf_topic>
+    <odom_publish_frequency>50</odom_publish_frequency>
+  </plugin>
+</gazebo>
+```
+
+Note `robot_base_frame` is whatever frame you want odom to track —
+conventionally `base_footprint` (ground projection). Make sure every
+downstream consumer (EKF, SLAM, Nav2 costmaps, collision monitor) uses the
+*same* base frame name, or TF lookups silently fail.
+
 ### Differential Drive (Wheeled Robots)
+
+Wheel-joint drive. Realistic, but odometry is dead-reckoned — see the
+decoupling warning above. If you use this, the footprint must be stable
+(see "Caster wheel with low friction" below) and `wheel_separation` /
+`wheel_radius` must exactly match the URDF joint geometry.
 
 ```xml
 <gazebo>

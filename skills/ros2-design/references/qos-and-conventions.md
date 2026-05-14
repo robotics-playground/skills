@@ -27,6 +27,40 @@ micro-ROS publishers use **Best Effort + Volatile** across the WiFi UDP boundary
 - **Custom interface package name:** `<project>_interfaces` (the `<project>` prefix is the snake_case codename; e.g. `acme_robot_interfaces`)
 - **Custom domain packages:** `<project>_<domain>` — typical domains are `safety`, `mission`, `bt_nodes`, `perception`, `bringup`, `description`, `interfaces`, `diagnostics`, `<sensor_or_driver>`
 
+## The robot base frame is a contract — pick one name, write it down
+
+`odom → <base> → sensor frames` is the TF spine. Whatever `<base>` is called —
+`base_link` or `base_footprint` — **every** consumer must use the *same* name:
+the odometry source (firmware, EKF, or a sim drive plugin), `robot_state_publisher`,
+SLAM, AMCL, every Nav2 costmap, the collision monitor. A mismatch does not
+error — TF lookups just silently fail and the robot "can't localise".
+
+State the chosen base frame name explicitly in the design (package-structure
+doc or the description-package node spec) so downstream stories don't each
+guess. If the project uses both `base_footprint` (ground projection) and
+`base_link` (body origin), specify which one each component's `*base_frame*`
+parameter points at — conventionally `base_footprint` for Nav2/SLAM/EKF, with
+a fixed `base_footprint → base_link` joint carrying the offset.
+
+## Simulation model: specify the drive mechanism in the design
+
+If the project has a Gazebo sim tier, the description-package spec must say
+*how* the simulated robot is driven, because the choice has architectural
+consequences the implementer cannot undo cheaply:
+
+- **Body-driven** (`VelocityControl` + `OdometryPublisher`): the plugin sets
+  the body twist directly and odometry is *measured* from the body. Odometry
+  and physics cannot diverge. **Default for nav/SLAM-focused sims.**
+- **Wheel-joint** (`DiffDrive` / `TrackedVehicle`): realistic drivetrain, but
+  odometry is *dead-reckoned* from commanded wheel velocity. If the footprint
+  is at all unstable it decouples from physics and every downstream consumer
+  (TF, SLAM, Nav2) is silently fed a lying pose. Specify this only when wheel
+  slip / traction fidelity is itself a requirement.
+
+This belongs in the design, not just the URDF, because "the sim robot uses
+body-driven control with `base_footprint` as the odom child frame" is a
+contract the EKF spec, the SLAM config, and the Nav2 params all depend on.
+
 ## Custom message field rules
 
 - **First field convention:** every custom `.msg` type starts with `builtin_interfaces/Time timestamp` for audit traceability. Apply this consistently — it makes log replay much easier.

@@ -80,6 +80,44 @@ command-line arguments and easier to maintain.
 ros2 run ros_gz_bridge parameter_bridge --ros-args -p config_file:=bridge_config.yaml
 ```
 
+### The Lazy-Bridge / GPU Sensor Deadlock
+
+By default the bridge is *lazy*: it creates the ROS 2 publisher immediately,
+but does not actually subscribe to the Gazebo topic until some ROS 2 node
+subscribes to the ROS side. Separately, Gazebo Harmonic GPU sensors
+(`gpu_lidar`, `gpu_ray`, depth cameras) only *tick* while something is
+subscribed to their gz topic — even with `<always_on>true</always_on>`.
+
+Put those together and you get a deadlock with no error message:
+
+```
+nobody subscribes to ROS /scan
+  -> lazy bridge never subscribes to gz /lidar
+    -> gpu_lidar sensor never ticks
+      -> no data, ever
+```
+
+`ros2 topic list` shows `/scan`, `ros2 topic info /scan` shows a publisher
+(the bridge), but `ros2 topic hz /scan` reports nothing. Meanwhile `gz topic
+-e -t /lidar` *does* produce data — because your `gz topic -e` is itself the
+subscriber that wakes the sensor up.
+
+**Fix:** set `lazy: false` on the bridge entries for GPU sensors, so the
+bridge subscribes to the gz topic at startup and the sensor runs immediately:
+
+```yaml
+- ros_topic_name: "/scan"
+  gz_topic_name: "/lidar"
+  ros_type_name: "sensor_msgs/msg/LaserScan"
+  gz_type_name: "gz.msgs.LaserScan"
+  direction: GZ_TO_ROS
+  lazy: false          # eager subscribe — forces the gpu_lidar to tick
+```
+
+IMU and contact sensors tick unconditionally, so they do not need this — it
+is specifically the render-based GPU sensors. If some sensors publish and
+others (always the GPU ones) do not, this is almost certainly the cause.
+
 ### Common Bridge Topic Mappings
 
 | Sensor / Data | Gazebo Type | ROS 2 Type | Direction |

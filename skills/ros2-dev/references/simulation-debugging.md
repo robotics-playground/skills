@@ -16,6 +16,8 @@ that disagreement visible, fast, so you stop chasing downstream symptoms.
 6. [Robot model: URDF gazebo-extensions vs parallel SDF](#6-robot-model-urdf-gazebo-extensions-vs-parallel-sdf)
 7. [Physical-stability failure modes](#7-physical-stability-failure-modes)
 8. [Sensor self-occlusion and the gpu_lidar gotcha](#8-sensor-self-occlusion-and-the-gpu_lidar-gotcha)
+8b. [GPU sensors that exist but never publish (the lazy-bridge deadlock)](#8b-gpu-sensors-that-exist-but-never-publish-the-lazy-bridge-deadlock)
+8c. [Heavy collision meshes silently destroy real-time factor](#8c-heavy-collision-meshes-silently-destroy-real-time-factor)
 9. [Viewer-side issues (Foxglove / RViz)](#9-viewer-side-issues-foxglove--rviz)
 10. [Clean-state discipline](#10-clean-state-discipline)
 11. [Standing diagnostics: the scripts in this skill](#11-standing-diagnostics-the-scripts-in-this-skill)
@@ -181,6 +183,20 @@ never in the sensors or TF:
   actual URDF joint geometry. A mismatch here makes odometry wrong even when
   physics is perfectly stable.
 
+**The structural fix -- stop dead-reckoning.** All of the above is tuning the
+*symptoms* of a wheel-joint drive plugin (`DiffDrive`, `TrackedVehicle`),
+which produces odometry by integrating *commanded* wheel velocity. If the
+point of the sim is navigation/SLAM rather than drivetrain fidelity, the
+robust fix is to not dead-reckon at all: replace the wheel-joint plugin with
+`gz-sim-velocity-control-system` (sets the body twist directly from
+`/cmd_vel`) plus `gz-sim-odometry-publisher-system` (publishes odom from the
+body's *actual* pose). Odometry and physics are then the same body's state by
+construction -- they cannot diverge, and the entire decoupling failure mode
+disappears. Keep wheel-joint plugins for when wheel slip / traction *is* the
+thing under test. After the swap, make sure every downstream consumer (EKF,
+SLAM, Nav2, collision monitor) uses the same `robot_base_frame` the
+`OdometryPublisher` is configured with, or TF lookups silently fail.
+
 ---
 
 ## 5. `use_sim_time` propagation -- the silent killer
@@ -327,6 +343,75 @@ moving in physics (rung 2) before concluding "self-occlusion".
 
 ---
 
+## 8b. GPU sensors that exist but never publish (the lazy-bridge deadlock)
+
+A different `gpu_lidar` failure, and a confusing one because the topic *looks*
+present. Symptom: `ros2 topic list` shows `/scan`, `ros2 topic info /scan`
+shows a publisher, but `ros2 topic hz /scan` reports nothing — no data ever.
+Meanwhile IMU and other non-render sensors work fine.
+
+Two facts combine into a deadlock:
+
+1. Gazebo Harmonic GPU sensors (`gpu_lidar`, `gpu_ray`, depth cameras) only
+   *tick* while something is subscribed to their gz topic — even with
+   `<always_on>true</always_on>` set.
+2. `ros_gz_bridge` is *lazy* by default: it creates the ROS 2 publisher
+   eagerly, but only subscribes to the gz topic once a ROS 2 node subscribes
+   to the ROS side.
+
+So: nothing subscribes to ROS `/scan` -> the lazy bridge never subscribes to
+gz `/lidar` -> the `gpu_lidar` never ticks -> no data. Nothing in the chain is
+"wrong", and nothing errors.
+
+**The tell:** `gz topic -e -t /lidar` *does* show data — because your `gz
+topic -e` is itself the subscriber that wakes the sensor. The instant you
+echo it, it works; stop echoing, it goes quiet.
+
+**Fix:** set `lazy: false` on the bridge entries for GPU sensors, so the
+bridge subscribes at startup and the sensor runs unconditionally:
+
+```yaml
+- ros_topic_name: "/scan"
+  gz_topic_name: "/lidar"
+  ros_type_name: "sensor_msgs/msg/LaserScan"
+  gz_type_name: "gz.msgs.LaserScan"
+  direction: GZ_TO_ROS
+  lazy: false
+```
+
+IMU/contact sensors tick unconditionally and don't need this. If *some*
+sensors publish and the missing ones are always the GPU/render ones, this is
+the cause — not the sensor definition.
+
+---
+
+## 8c. Heavy collision meshes silently destroy real-time factor
+
+If the whole sim suddenly runs in slow motion — sensors publishing at a
+fraction of their configured rate, odometry stuttering, `ros2 topic hz`
+showing 2 Hz where you configured 50 — suspect a collision mesh before
+anything else.
+
+A detailed mesh used as a `<collision>` shape (a CAD-exported chassis STL is
+routinely tens of thousands of triangles) forces the physics engine to test
+every contact against every triangle. There is no error; real-time factor
+just collapses — observed dropping from ~1.0 to ~0.04 from a single multi-MB
+chassis STL. Every downstream "bug" (slow sensors, missed control deadlines)
+is a symptom of that one cause.
+
+**Confirm:** check the real-time factor —
+`gz topic -e -n 1 -t /world/<world>/stats | grep real_time_factor`. If it is
+far below 1.0, inspect collision geometry: `gz sdf -p model.sdf` and look for
+`<mesh>` inside any `<collision>`.
+
+**Fix:** keep the detailed mesh for `<visual>`; give `<collision>` a cheap
+primitive (a bounding box, cylinder, sphere). Visual and collision geometry
+do not have to match — the visual is what the user sees, the collision only
+has to stop the robot passing through obstacles. This is the first thing to
+check after copying a robot model from another project.
+
+---
+
 ## 9. Viewer-side issues (Foxglove / RViz)
 
 If the data is correct (belief matches ground truth, TF healthy, sensor values
@@ -432,9 +517,12 @@ zero-effort glance.
 | Robot commanded to move but barely moves in physics | Robot stuck (world collision, jammed joint, no friction) | Section 7 / rung 2 |
 | odom says the robot moved but it visibly did not | odometry integrating phantom motion; robot stuck | Section 4 -- `sim_motion_check.py` says "ROBOT DID NOT MOVE" |
 | A scan beam reads a constant short range everywhere | Sensor self-occlusion (own collision shape / chassis in plane) | Section 8 -- but first confirm robot actually moves |
+| GPU sensor topic exists but `hz` shows nothing; data appears only while you `gz topic -e` it | Lazy-bridge deadlock -- GPU sensor never ticks because nothing subscribed | Section 8b -- set `lazy: false` on the bridge entry |
+| Whole sim in slow motion; sensors/odom at a fraction of configured rate | Heavy mesh used as collision geometry collapses real-time factor | Section 8c -- check RTF, replace collision mesh with a primitive |
 | Sensor frame and physics disagree by a fixed offset | Parallel-SDF / URDF model drift | Section 6 -- unify on URDF + `<gazebo>` blocks |
 | Wheel spins but robot skids / pirouettes | Wheel rotation axis wrong | Section 7 -- check wheel `<axis>` is roll-about-Y |
 | Odometry scale is consistently off (over/under-shoots) | Drive plugin `wheel_radius`/`wheel_separation` ne URDF | Section 4 -- match plugin params to joint geometry |
+| Wheel-drive odometry decoupling keeps recurring no matter how you tune it | Dead-reckoning drive is the wrong tool for a nav-focused sim | Section 4 -- switch to `VelocityControl` + `OdometryPublisher` |
 | Measurement looks physically impossible | Stale / degenerate sim state | Section 10 -- full restart, re-measure |
 
 ---
