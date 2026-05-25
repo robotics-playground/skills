@@ -1,15 +1,20 @@
 ---
 name: dim-diagram
 description: >
-  Turn phone photos of an object into a CAD-style 3-view dimensioned drawing. Use when the user
-  wants to measure an object's real dimensions from a photo, generate a 2D dimensional drawing or
-  datasheet, extract length/width/height or hole sizes from an image that contains a scale
-  reference (a ruler, a ChArUco/ArUco marker, a coin, or any object of known size), rectify a
-  photo to metric scale, or produce an SVG/PDF/DXF engineering sheet. Covers ChArUco board
-  printing, phone capture for accuracy, OpenCV homography rectification, sub-pixel measurement,
-  and ezdxf drawing output. This is for 2D measurement and drawings from one photo per view;
-  for a full 3D mesh/model reconstructed from many overlapping photos, use photogrammetry-3d
-  instead.
+  Turn phone photos of an object into a CAD-style 3-view dimensioned drawing and measure an
+  object's real-world size from images. Make sure to use this skill whenever the user wants to
+  know how big something is from a photo, measure length/width/height or hole sizes/spacing from
+  an image, turn one or a few photos into a dimensioned 2D drawing, mechanical drawing, datasheet,
+  or engineering sheet, or get an SVG/PDF/DXF showing an object's dimensions — even if they don't
+  say "dim-diagram" or name a technique. Strong triggers: a photo containing a scale reference
+  (ruler, ChArUco/ArUco marker, coin, or any object of known size); phrases like "how big is this
+  part", "reverse-engineer the dimensions", "make a drawing in mm", "front/top/side photos",
+  "dimension this from a picture". It rectifies the photo to metric scale via OpenCV homography,
+  measures sub-pixel edges and hole diameters, reconciles three views, and renders an ezdxf sheet;
+  it also prints a ChArUco board and can calibrate the phone lens. Scope: 2D measurement/drawings
+  from one photo per view — NOT a 3D mesh from many overlapping photos (use photogrammetry-3d),
+  and not object detection/counting, camera-calibration-only, PDF-to-CAD conversion, or image
+  editing.
 ---
 
 # Photo → CAD-style Dimensioned Drawing (`dim-diagram`)
