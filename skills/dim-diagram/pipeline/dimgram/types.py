@@ -1,6 +1,6 @@
 from __future__ import annotations
 import json
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal, Optional
 import numpy as np
@@ -30,11 +30,20 @@ class ViewMeasurement:
 
 
 def to_json(vm: ViewMeasurement, path: Path) -> None:
+    # Coerce to native Python floats so numpy scalars (e.g. float32 from cv2) serialize.
     payload = {
         "view": vm.view,
-        "dimensions": [asdict(d) for d in vm.dimensions],
+        "dimensions": [{
+            "label": d.label,
+            "kind": d.kind,
+            "p1": [float(d.p1[0]), float(d.p1[1])],
+            "p2": [float(d.p2[0]), float(d.p2[1])],
+            "value_mm": float(d.value_mm),
+            "sigma_mm": float(d.sigma_mm),
+            "axis": d.axis,
+        } for d in vm.dimensions],
         "contour": np.asarray(vm.contour, dtype=float).tolist(),
-        "mm_per_px": vm.mm_per_px,
+        "mm_per_px": float(vm.mm_per_px),
         "warnings": list(vm.warnings),
     }
     Path(path).write_text(json.dumps(payload, indent=2))
