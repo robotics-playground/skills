@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 import yaml
 from . import board as board_mod
+from .calibrate import calibrate_camera, save_camera_yaml, load_camera_yaml, undistort_image
 from .reference import detect_charuco
 from .rectify import rectify_to_metric
 from .segment import ClassicalSegmenter
@@ -44,11 +45,27 @@ def cmd_make_board(a):
           f"{out['square_mm']}mm each")
 
 
+def cmd_calibrate(a):
+    import glob
+    board, _ = _load_board(a.assets)
+    paths = sorted(p for ext in ("jpg", "jpeg", "png", "JPG", "JPEG", "PNG")
+                   for p in glob.glob(str(Path(a.images) / f"*.{ext}")))
+    imgs = [cv2.imread(p) for p in paths]
+    imgs = [im for im in imgs if im is not None]
+    if len(imgs) < 3:
+        raise SystemExit(f"need >=3 readable images in {a.images}, found {len(imgs)}")
+    calib = calibrate_camera(imgs, board)
+    save_camera_yaml(calib, a.out)
+    print(f"calibrated from {len(imgs)} images: reproj={calib.reproj_error:.3f}px -> {a.out}")
+
+
 def cmd_process(a):
     board, cfg = _load_board(a.assets)
     img = cv2.imread(a.image)
     if img is None:
         raise SystemExit(f"cannot read image: {a.image}")
+    if a.camera:
+        img = undistort_image(img, load_camera_yaml(a.camera))   # undistort before detection
     det = detect_charuco(img, board)
     if det is None:
         raise SystemExit(f"no ChArUco board detected in {a.image}")
@@ -92,6 +109,13 @@ def main(argv=None):
     mb.add_argument("--paper", default="A4")
     mb.add_argument("--square-mm", type=float, default=None, dest="square_mm")
 
+    cal = sub.add_parser("calibrate")
+    cal.set_defaults(fn=cmd_calibrate)
+    cal.add_argument("images", help="directory of ChArUco-board photos")
+    cal.add_argument("--out", required=True, help="output camera.yaml")
+    cal.add_argument("--assets",
+                     default=str(Path(__file__).parents[2] / "references" / "assets"))
+
     pr = sub.add_parser("process")
     pr.set_defaults(fn=cmd_process)
     pr.add_argument("image")
@@ -100,6 +124,7 @@ def main(argv=None):
     pr.add_argument("--assets",
                     default=str(Path(__file__).parents[2] / "references" / "assets"))
     pr.add_argument("--px-per-mm", type=float, default=4.0, dest="px_per_mm")
+    pr.add_argument("--camera", default=None, help="camera.yaml to undistort before detection")
 
     asm = sub.add_parser("assemble")
     asm.set_defaults(fn=cmd_assemble)
