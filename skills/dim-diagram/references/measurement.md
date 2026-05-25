@@ -21,9 +21,10 @@ backends.
 - **`ClassicalSegmenter` (default, shipped):** Gaussian blur → Otsu inverse threshold →
   largest external contour fill. Zero heavy deps. **Assumes a contrasting background** — hence
   the capture guide's matte-backdrop advice.
-- **`SamSegmenter` (optional, planned, `[sam]` extra):** MobileSAM via `ultralytics` (~40 MB,
-  CPU-viable) with a box/point prompt for cluttered backgrounds. Still only *localises* — the
-  measurement is done by the sub-pixel stage below.
+- **`SamSegmenter` (implemented, `[sam]` extra):** MobileSAM via `ultralytics` (~40 MB,
+  CPU-viable), prompted with a foreground point (image centre by default), for cluttered
+  backgrounds. Use via `dimgram process --segmenter sam`. Still only *localises* — the
+  measurement is done by the sub-pixel stage below, never off the coarse SAM mask.
 
 Classical options for harder cases (documented for when you extend it): `cv2.grabCut`
 (cluttered, seed with a box), `cv2.adaptiveThreshold` (uneven light), `cv2.watershed` (touching
@@ -51,13 +52,15 @@ many sub-pixel points — fitting averages out noise far better than any single 
 - **Per-dimension uncertainty** `sigma_mm = hypot(0.5 px · mm_per_px, value · sigma_scale)` —
   combining edge localisation with the homography scale uncertainty.
 
-## Features (holes, slots) — extension points
+## Features (holes) — implemented; slots — extension point
 
-For dimensioning beyond the bounding box, seed with detectors then fit:
-- Holes: `cv2.HoughCircles` on the grayscale to *locate*, then fit a circle to sub-pixel edge
-  points for the diameter.
-- Slots / straight edges: `cv2.HoughLinesP` on a Canny edge image to *locate*, then `cv2.fitLine`
-  on sub-pixel points and measure the normal distance.
+Hole diameters are implemented in `measure.detect_holes`: threshold → `findContours` with
+`RETR_CCOMP` → keep interior contours that pass a **circularity gate** → report an
+area-equivalent diameter as a `Dimension(kind="diameter")`. `draw` renders each as a circle
+with a `DIA` label. (Synthetic test recovers a 30 mm hole within 3 %.)
+
+For slots / straight-edge spacings (extension point): `cv2.HoughLinesP` on a Canny edge image
+to *locate*, then `cv2.fitLine` on sub-pixel points and measure the normal distance.
 
 ## References
 - Sub-pixel edge contour (Steger): https://github.com/raymondngiam/subpixel-edge-contour-in-opencv

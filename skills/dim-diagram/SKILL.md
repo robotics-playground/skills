@@ -71,25 +71,29 @@ drawn. No 3D reconstruction.
 
 ```bash
 cd skills/dim-diagram/pipeline
-python -m venv .venv && .venv/bin/pip install -e .
+python -m venv .venv && .venv/bin/pip install -e .         # add '.[sam]' for the SAM backend
 
 # 1. Print the board (A4 default already shipped at references/assets/charuco_A4.pdf).
 #    To regenerate or resize:
 .venv/bin/dimgram make-board references/assets --paper A4
 #    PRINT AT 100% / ACTUAL SIZE, then verify the printed "100.0 mm" line with a ruler.
 
+# (optional) calibrate your phone lens once for ~1% better edge accuracy:
+.venv/bin/dimgram calibrate ./calib_photos --out camera.yaml
+
 # 2. Shoot 3 photos (see references/capture-guide.md). Board BESIDE the object,
 #    coplanar with the measured face: stood up for front/side, flat for top.
 
-# 3. Measure each view.
-.venv/bin/dimgram process front.jpg --view front --out front.json
+# 3. Measure each view (optional: --camera camera.yaml to undistort; --segmenter sam
+#    for cluttered backgrounds).
+.venv/bin/dimgram process front.jpg --view front --out front.json [--camera camera.yaml]
 .venv/bin/dimgram process top.jpg   --view top   --out top.json
 .venv/bin/dimgram process side.jpg  --view side  --out side.json
 
 # 4. Assemble the drawing + bundle.
 .venv/bin/dimgram assemble front.json top.json side.json \
     --out drawing --title "My Part" --bundle ./bundle
-# -> drawing.svg/.png/.pdf/.dxf  + ./bundle (for photogrammetry-3d)
+# -> drawing.svg/.png/.pdf/.dxf (incl. hole DIA labels) + ./bundle (for photogrammetry-3d)
 ```
 
 `assemble` prints the reconciled overall dimensions and **WARNING** lines if the views disagree

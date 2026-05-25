@@ -50,18 +50,19 @@ A tilted sensor causes keystone error (scale varies across the frame). `rectify.
 ~0°). `measure.py` attaches a warning when tilt ≥ 2.5°. Mitigate with a tripod + level; recover
 squareness by re-shooting, not in post.
 
-## Camera calibration (recommended, currently optional)
+## Camera calibration (implemented)
 
-Undistort before measuring to remove ~1 % edge error:
-1. Shoot 10–20 views of the same ChArUco board at varied angles/distances.
-2. `cv2.aruco.CharucoDetector.detectBoard` → corners; `cv2.calibrateCamera` (or
-   `calibrateCameraCharuco`) → `cameraMatrix`, `distCoeffs`. Target reprojection error
-   **< 0.3 px**.
-3. `cv2.undistort(image, cameraMatrix, distCoeffs)` before detection.
+Undistort before measuring to remove ~1 % edge error. Implemented in `dimgram/calibrate.py`
+and wired into the CLI:
+1. Shoot 10–20 views of the same ChArUco board at varied angles/distances into a folder.
+2. `dimgram calibrate <folder> --out camera.yaml` — runs `CharucoDetector.detectBoard` +
+   `board.matchImagePoints` + `cv2.calibrateCamera`, writes `camera.yaml`, and reports the
+   RMS reprojection error (target **< 0.3 px**, acceptable < 1 px).
+3. `dimgram process photo.jpg --view front --camera camera.yaml ...` undistorts
+   (`cv2.undistort`) **before** detection.
 
-> The MVP pipeline runs without calibration (assumes no distortion). When skipped, keep the
-> object near the frame centre where distortion is smallest. Calibration is a planned
-> enhancement wired into `rectify`.
+> Calibration is optional: with no `--camera`, the pipeline assumes no distortion — keep the
+> object near the frame centre where distortion is smallest.
 
 ## Ruler fallback
 
