@@ -25,6 +25,7 @@ Each skill is a self-contained module under `skills/`.
 | [`gazebo-sim`](skills/gazebo-sim/) | Gazebo Harmonic simulation for ROS 2: SDF worlds, sensor plugins, `ros_gz_bridge`, physics tuning, sim-to-real config portability. |
 | [`isaac-rl`](skills/isaac-rl/) | NVIDIA Isaac Sim/Lab and reinforcement learning for robotics — PPO/SAC, reward design, sim-to-real, Unitree humanoids. |
 | [`nav-slam`](skills/nav-slam/) | SLAM (`slam_toolbox`) + Nav2 navigation: costmaps, planners, controllers, AMCL, EKF, behavior trees, recovery behaviors. |
+| [`photogrammetry-3d`](skills/photogrammetry-3d/) | Metric 3D mesh from overlapping phone photos via COLMAP SfM+MVS — consumes `dim-diagram`'s bundle for scale/axes/silhouettes; oriented-bbox + RANSAC measurement, OBJ/STL/STEP export. Guidance + design (pipeline specced, not yet implemented). |
 | [`ros2-design`](skills/ros2-design/) | **Pre-implementation design contract.** Takes a PRD + architecture + hardware/wiring doc and produces a complete `designs/` tree — per-node specs, custom interface specs, package-structure document, and 7 PlantUML data-flow + node-map diagrams (rendered to SVG). Use before writing any node code. |
 | [`ros2-dev`](skills/ros2-dev/) | ROS 2 (Jazzy) development in Python (`rclpy`) and C++ (`rclcpp`) — topics/services/actions, QoS, lifecycle nodes, tf2, URDF, launch files, debugging DDS. |
 
