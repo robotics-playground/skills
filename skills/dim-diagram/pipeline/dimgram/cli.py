@@ -71,7 +71,12 @@ def cmd_process(a):
         raise SystemExit(f"no ChArUco board detected in {a.image}")
     res = rectify_to_metric(img, det, target_px_per_mm=a.px_per_mm)
     mask_box = _board_mask_box(det, res, cfg["square_mm"])
-    vm = measure_view(res, ClassicalSegmenter(), a.view, board_mask_px=mask_box)
+    if a.segmenter == "sam":
+        from .segment import SamSegmenter
+        segmenter = SamSegmenter()
+    else:
+        segmenter = ClassicalSegmenter()
+    vm = measure_view(res, segmenter, a.view, board_mask_px=mask_box)
     to_json(vm, a.out)
     cv2.imwrite(str(_rect_path(a.out)), res.image)   # for the downstream bundle
     print(f"{a.view}: " + ", ".join(
@@ -125,6 +130,8 @@ def main(argv=None):
                     default=str(Path(__file__).parents[2] / "references" / "assets"))
     pr.add_argument("--px-per-mm", type=float, default=4.0, dest="px_per_mm")
     pr.add_argument("--camera", default=None, help="camera.yaml to undistort before detection")
+    pr.add_argument("--segmenter", choices=["classical", "sam"], default="classical",
+                    help="object segmentation backend ('sam' needs the [sam] extra)")
 
     asm = sub.add_parser("assemble")
     asm.set_defaults(fn=cmd_assemble)
