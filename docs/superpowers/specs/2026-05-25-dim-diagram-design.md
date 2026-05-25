@@ -11,9 +11,11 @@
 
 A robotics-skills entry that turns ordinary **phone photos of an object** into a
 **CAD-style, 3-view orthographic dimensioned drawing** (front / top / side), like a
-manufacturer's 2D datasheet. The user captures **one photo per view**, each containing a
-known-size **ChArUco board** (printable asset included, A4 by default) as the scale +
-perspective reference. The pipeline rectifies and measures each view independently, then
+manufacturer's 2D datasheet. The user captures **one photo per view**, with a
+known-size **ChArUco board** (printable asset included, A4 by default) placed **beside the
+object — not under it** — coplanar with the face being measured, as the scale + perspective
+reference. The board's orientation changes per view (stood up vertically for front/side, laid
+flat for top); see §7.1. The pipeline rectifies and measures each view independently, then
 assembles the results into a dimensioned sheet exported to **SVG, PNG, and PDF** (DXF comes
 free as a by-product).
 
@@ -52,7 +54,8 @@ on every measurement. Sub-millimetre / metrology-grade is explicitly out of scop
 [one-time]  calibrate phone lens    →  camera.yaml   (optional but recommended)
 
 [per object]
-  capture 3 photos (front, top, side), board coplanar with each measured face
+  capture 3 photos (front, top, side); board beside object & coplanar with each
+  measured face (stood up for front/side, flat for top — see §7.1)
         │
         ▼
   dimgram process front.jpg --view front  ─┐
@@ -186,10 +189,46 @@ for other sizes.
 Captured into `references/capture-guide.md`, ordered by leverage. **Capture dominates; the
 algorithm is secondary.**
 
+### 7.1 Board placement (must be explicit and unmissable in the guide)
+
+**The board goes *beside* the object, never under it**, lying in the *same flat plane* as the
+face being measured and parallel to the camera sensor. Both the full object silhouette and the
+full board must be visible and unoccluded. The board's **orientation changes per view**:
+
+| View | Camera looks | Measured plane | Board placement |
+|---|---|---|---|
+| **Front** | horizontally at the front | vertical (width × height) | **stood up vertically** beside the object, facing the camera, in the front plane |
+| **Side** | horizontally at the side | vertical (depth × height) | **stood up vertically** beside the object, in the side plane |
+| **Top** | straight down | horizontal footprint (width × depth) | **laid flat** on the table beside the object |
+
+Bird's-eye schematic of the **front** setup (board is a standing panel next to the object, both
+at the same distance from the camera):
+
+```
+   board (standing,      object
+   facing camera)        ┌──────┐
+      ▓▓▓▓                │      │
+   ────┴─────────────────┴──────┴────  table
+                  ▲
+               [phone]  far away, square-on
+```
+
+**Why not on/under the object:**
+1. **Plane mismatch (dominant).** Front/side faces are *vertical*; a board lying flat is
+   *horizontal* (90° off) so its homography cannot rectify that face. The board must stand in
+   the face's plane.
+2. **Occlusion.** An object on the board hides center squares; keep the whole board visible.
+3. **Depth offset.** An object resting on the board lifts the measured silhouette above the
+   board plane → error ≈ Δ/d. Side-by-side and coplanar keeps Δ ≈ 0.
+
+**Tall-object top-view nuance:** if the widest part is elevated above the table, **raise the
+flat board to that height** (prop it on a box) so it stays coplanar with the silhouette.
+
 ### Tier 1 — capture (dominates the error budget)
-1. **Reference coplanar with the measured face.** Error ≈ **Δ/d** (depth offset / camera
-   distance). Stand the board *in the plane* of the face for front/side; for top view raise it
-   to the height of the widest feature if that sits above the table.
+1. **Reference coplanar with the measured face, beside the object.** Error ≈ **Δ/d** (depth
+   offset / camera distance). Place the board per §7.1 — *beside*, not under; stood up for
+   front/side, flat for top; raised to the widest feature's height when that sits above the
+   table.
 2. **Use the ChArUco board, not a bare ruler.** 4+ corners → homography (perspective
    correction); chessboard saddle-corners localize sub-pixel; calibrates the camera for free.
 3. **Shoot far with a long lens.** Distance ≥ **10× object depth**; perspective error ≈
@@ -231,7 +270,8 @@ The guide is **phone-first** and includes:
 
 **One-time:** print + verify the board; calibrate one specific phone lens and lock it.
 
-**Per view (front/top/side):** matte high-contrast background → board coplanar with the face →
+**Per view (front/top/side):** matte high-contrast background → **board placed beside the
+object, coplanar with the measured face per §7.1** (stood up for front/side, flat for top) →
 tripod, square (use the camera-app level/grid), step back far → **main 1× or optical 2–3×
 tele lens** → lock AE/AF, max resolution, **HDR/Live/Portrait/Beauty/flash OFF**, diffuse light
 → fill frame but keep clear of corners → optional validation object → 3–5 frames.
