@@ -16,7 +16,10 @@ def _add_view(msp, vm: ViewMeasurement, origin: tuple[float, float]) -> None:
     ys = [p[1] for p in pts]
     # one horizontal + one vertical overall dimension from the contour bbox.
     # dimtxt/dimasz set text + arrow size (mm) for legibility at object scale.
-    dimattr = {"dimtxt": 5.0, "dimasz": 3.0, "dimexe": 2.0, "dimexo": 2.0, "dimdec": 1}
+    # dimlfac=1.0 is essential: the "EZDXF" preset dimstyle ships with dimlfac=100
+    # (an imperial preset), which would otherwise display every value 100x too large.
+    dimattr = {"dimtxt": 5.0, "dimasz": 3.0, "dimexe": 2.0, "dimexo": 2.0,
+               "dimdec": 1, "dimlfac": 1.0}
     msp.add_linear_dim(base=(ox, max(ys) + 14), p1=(min(xs), max(ys)),
                        p2=(max(xs), max(ys)), angle=0, dimstyle="EZDXF",
                        override=dimattr).render()

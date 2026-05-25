@@ -24,18 +24,21 @@ def measure_view(res, segmenter: Segmenter, view: View,
     mask = segmenter.segment(img)
     poly = refine_contour(gray, mask)
 
-    rect = cv2.minAreaRect(poly.astype(np.float32))   # ((cx,cy),(w,h),angle) in px
-    box = cv2.boxPoints(rect)
-    (w_px, h_px) = rect[1]
-    width_mm = max(w_px, h_px) * res.mm_per_px
-    height_mm = min(w_px, h_px) * res.mm_per_px
+    # Views are rectified fronto-parallel and axis-aligned to the board, so the object's
+    # HORIZONTAL extent is the view's width axis and the VERTICAL extent is its height axis.
+    # (Using max/min instead would mislabel views whose height exceeds their width.)
+    xs, ys = poly[:, 0], poly[:, 1]
+    x0, x1 = float(xs.min()), float(xs.max())
+    y0, y1 = float(ys.min()), float(ys.max())
+    width_mm = (x1 - x0) * res.mm_per_px
+    height_mm = (y1 - y0) * res.mm_per_px
     # combine 0.5 px edge-localisation with the fractional scale uncertainty
     sig = lambda v: float(np.hypot(0.5 * res.mm_per_px, v * res.sigma_scale))
     ax_w, ax_h = VIEW_AXES[view]
     dims = [
-        Dimension("width", "linear", tuple(box[0]), tuple(box[1]),
+        Dimension("width", "linear", (x0, y1), (x1, y1),
                   round(width_mm, 2), round(sig(width_mm), 2), ax_w),
-        Dimension("height", "linear", tuple(box[1]), tuple(box[2]),
+        Dimension("height", "linear", (x0, y0), (x0, y1),
                   round(height_mm, 2), round(sig(height_mm), 2), ax_h),
     ]
     warnings = [] if res.tilt_deg < 2.5 else [f"camera tilt {res.tilt_deg:.1f} deg > 2.5"]

@@ -19,3 +19,16 @@ def test_render_sheet_writes_all_formats(tmp_path):
                        formats=("svg", "png", "pdf", "dxf"))
     for ext in ("svg", "png", "pdf", "dxf"):
         assert Path(out[ext]).exists() and Path(out[ext]).stat().st_size > 0
+
+
+def test_dimension_text_is_not_scaled(tmp_path):
+    """The EZDXF preset dimstyle ships with dimlfac=100; ensure our override makes the
+    dimension text show real mm (100.0), not 100x (10000)."""
+    contour = np.array([[0, 0], [100, 0], [100, 50], [0, 50]], float)  # mm_per_px=1 -> 100x50 mm
+    vm = ViewMeasurement("front",
+        [Dimension("width", "linear", (0, 0), (100, 0), 100.0, 0.5, "X")],
+        contour, 1.0, [])
+    out = render_sheet({"front": vm}, tmp_path / "d", formats=("svg",))
+    svg = Path(out["svg"]).read_text()
+    assert "100.0" in svg          # real measurement shown
+    assert "10000" not in svg      # not multiplied by dimlfac=100

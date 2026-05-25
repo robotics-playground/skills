@@ -1,0 +1,30 @@
+{
+  "skill_name": "dim-diagram",
+  "notes": "Synthetic ChArUco test photos with known ground truth: box X(width)=120, Y(depth)=80, Z(height)=90 mm. Board = shipped A4 ChArUco (DICT_5X5_1000, 7x11, 24mm square). Inputs in dim-diagram-workspace/inputs/.",
+  "evals": [
+    {
+      "id": 0,
+      "name": "three-view-dimensioned-drawing",
+      "prompt": "I photographed a part from three angles - front.png, top.png, and side.png - and each photo has a printed ChArUco board placed next to the part for scale. Produce a CAD-style 3-view dimensioned drawing (front/top/side) with the part's real-world dimensions in millimetres, and tell me the overall length, width, and height.",
+      "files": ["front.png", "top.png", "side.png"],
+      "expected_output": "A 3-view dimensioned drawing (SVG/PDF/DXF) plus reported overall dims ~ width 120, depth 80, height 90 mm (within ~2%), with cross-view consistency.",
+      "assertions": []
+    },
+    {
+      "id": 1,
+      "name": "single-view-measurement",
+      "prompt": "Here's a single photo (front.png) of an object sitting next to a printed ChArUco board. How wide and how tall is the object in millimetres? Show your reasoning about scale.",
+      "files": ["front.png"],
+      "expected_output": "Width ~120 mm and height ~90 mm (within ~2%), scale derived from the ChArUco board (not guessed).",
+      "assertions": []
+    },
+    {
+      "id": 2,
+      "name": "make-board-and-capture-advice",
+      "prompt": "I want to measure my robot's dimensions from phone photos as accurately as possible. Give me a printable scale-reference board to use, and tell me exactly how to position it and shoot the photos to get the best accuracy.",
+      "files": [],
+      "expected_output": "Generates/points to a printable ChArUco board (A4) and gives capture guidance: board coplanar & beside the object (per-view orientation), shoot far with long lens, square-on, verify print scale, target ~1-2%.",
+      "assertions": []
+    }
+  ]
+}
