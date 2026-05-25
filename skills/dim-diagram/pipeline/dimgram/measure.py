@@ -9,6 +9,35 @@ from .subpixel import refine_contour
 VIEW_AXES = {"front": ("X", "Z"), "top": ("X", "Y"), "side": ("Y", "Z")}
 
 
+def detect_holes(gray: np.ndarray, mm_per_px: float, sigma_scale: float,
+                 min_dia_mm: float = 4.0) -> list[Dimension]:
+    """Find round holes (internal contours) and return their diameters.
+
+    Holes are interior contours of the object; we keep only sufficiently large, round
+    ones and report an area-equivalent diameter (robust for circles)."""
+    _, th = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    contours, hierarchy = cv2.findContours(th, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+    dims: list[Dimension] = []
+    if hierarchy is None:
+        return dims
+    min_area = np.pi * (min_dia_mm / mm_per_px / 2.0) ** 2
+    for c, h in zip(contours, hierarchy[0]):
+        if h[3] == -1:                      # external contour (the object) -> skip
+            continue
+        area = cv2.contourArea(c)
+        peri = cv2.arcLength(c, True)
+        if area < min_area or peri == 0:
+            continue
+        if 4 * np.pi * area / (peri * peri) < 0.7:   # circularity gate -> only round holes
+            continue
+        (cx, cy), _ = cv2.minEnclosingCircle(c)
+        d_mm = 2.0 * np.sqrt(area / np.pi) * mm_per_px
+        sig = float(np.hypot(0.5 * mm_per_px, d_mm * sigma_scale))
+        dims.append(Dimension("hole_dia", "diameter", (float(cx), float(cy)),
+                              (float(cx), float(cy)), round(d_mm, 2), round(sig, 2), None))
+    return dims
+
+
 def measure_view(res, segmenter: Segmenter, view: View,
                  board_mask_px: tuple[float, float, float, float] | None = None) -> ViewMeasurement:
     """Measure the object's overall dimensions in a rectified metric image.
@@ -41,5 +70,6 @@ def measure_view(res, segmenter: Segmenter, view: View,
         Dimension("height", "linear", (x0, y0), (x0, y1),
                   round(height_mm, 2), round(sig(height_mm), 2), ax_h),
     ]
+    dims += detect_holes(gray, res.mm_per_px, res.sigma_scale)
     warnings = [] if res.tilt_deg < 2.5 else [f"camera tilt {res.tilt_deg:.1f} deg > 2.5"]
     return ViewMeasurement(view, dims, poly, res.mm_per_px, warnings)

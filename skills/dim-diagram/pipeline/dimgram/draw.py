@@ -26,6 +26,14 @@ def _add_view(msp, vm: ViewMeasurement, origin: tuple[float, float]) -> None:
     msp.add_linear_dim(base=(min(xs) - 14, oy), p1=(min(xs), min(ys)),
                        p2=(min(xs), max(ys)), angle=90, dimstyle="EZDXF",
                        override=dimattr).render()
+    # draw any holes as circles with a diameter label
+    for d in vm.dimensions:
+        if d.kind == "diameter":
+            cx = ox + d.p1[0] * vm.mm_per_px
+            cy = oy + d.p1[1] * vm.mm_per_px
+            msp.add_circle((cx, cy), d.value_mm / 2.0)
+            msp.add_text(f"DIA {d.value_mm:.1f}", dxfattribs={"height": 4}).set_placement(
+                (cx + d.value_mm / 2.0 + 3, cy))
     msp.add_text(vm.view.upper(), dxfattribs={"height": 4}).set_placement((ox, min(ys) - 10))
 
 
