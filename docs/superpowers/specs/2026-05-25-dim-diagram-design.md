@@ -40,10 +40,19 @@ on every measurement. Sub-millimetre / metrology-grade is explicitly out of scop
 
 ### Non-goals
 - Full 3D reconstruction / multi-image bundle-adjustment photogrammetry (would need many
-  photos; contradicts "one photo per view"). **This is handled by the separate sibling skill
-  `photogrammetry-3d`** (see `2026-05-25-photogrammetry-3d-design.md`), which can hand
-  orthographic projections back to this skill's `draw` renderer. The two skills **share** the
-  printable ChArUco board asset (§6) and the `draw` (ezdxf) module.
+  photos; contradicts "one photo per view"). **This is handled by the separate *downstream*
+  sibling skill `photogrammetry-3d`** (see `2026-05-25-photogrammetry-3d-design.md`). The data
+  flow is `dim-diagram` → `photogrammetry-3d`: this skill runs first and **exports a metric
+  bundle** (per-view `ViewMeasurement` JSON, rectified views, recovered scale, board/marker
+  info, camera calibration) that `photogrammetry-3d` consumes — together with an orbit/turntable
+  photo set — to build and validate the 3D model. The two skills **share** the printable ChArUco
+  board asset (§6); `photogrammetry-3d` reuses this skill's scale/axes/silhouettes as priors.
+
+### Output bundle for the downstream 3D skill
+`dim-diagram` already produces everything `photogrammetry-3d` needs as priors. `assemble`/
+`process` also emit a **`bundle/` directory** (per-view `ViewMeasurement` JSON + rectified
+metric images + `scale.yaml` with `mm_per_px`/board pose + the `camera.yaml`), which is the
+documented input contract for the sibling skill.
 - Sub-millimetre metrology (needs a controlled rig or calipers).
 - Measuring occluded / internal features not visible in any single view.
 - Real-time / video processing.
