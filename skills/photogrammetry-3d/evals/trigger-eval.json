@@ -1,0 +1,21 @@
+[
+  {"query": "I walked around my sculpture taking about 50 overlapping photos, can you reconstruct a 3D model / mesh from them?", "should_trigger": true},
+  {"query": "build me an OBJ or STL of this part from a turntable photo set so I can 3D print a copy", "should_trigger": true},
+  {"query": "run photogrammetry on these images and give me a dense point cloud", "should_trigger": true},
+  {"query": "I have the dim-diagram bundle plus 40 orbit photos of the same object - turn it into a metric 3D model", "should_trigger": true},
+  {"query": "reconstruct the 3D geometry of my robot from a bunch of overlapping pictures with COLMAP", "should_trigger": true},
+  {"query": "scan this object into a 3D model from my phone photos, and use the aruco markers in the shots to get real-world scale", "should_trigger": true},
+  {"query": "generate a mesh from this photo set and tell me the oriented bounding box dimensions of the rock", "should_trigger": true},
+  {"query": "I shot 60 images all around this bracket, I want a STEP file reconstructed from them", "should_trigger": true},
+  {"query": "create a textured 3D model from these images taken in a circle around the statue", "should_trigger": true},
+
+  {"query": "I have one photo of a part with a ruler next to it, just give me a flat 2D dimensioned drawing", "should_trigger": false},
+  {"query": "model a spur gear in OpenSCAD from these tooth-count and module dimensions", "should_trigger": false},
+  {"query": "render this existing .obj mesh to a nice product image with soft lighting", "should_trigger": false},
+  {"query": "stitch these overlapping photos into a single panorama", "should_trigger": false},
+  {"query": "track features across my drone video for visual odometry and SLAM mapping", "should_trigger": false},
+  {"query": "convert my STL file to OBJ format", "should_trigger": false},
+  {"query": "I took 3 orthographic photos - front, top, side - each with a charuco board, just measure the object's L/W/H", "should_trigger": false},
+  {"query": "simulate my robot in Gazebo using its existing URDF and mesh", "should_trigger": false},
+  {"query": "build a gaussian splat / NeRF so I can do a smooth fly-through video of this room", "should_trigger": false}
+]

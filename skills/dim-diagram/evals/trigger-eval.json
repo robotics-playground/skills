@@ -1,0 +1,21 @@
+[
+  {"query": "i've got a photo of a steel bracket on my workbench with a ruler laid next to it, can you work out the actual dimensions in mm and make me a drawing?", "should_trigger": true},
+  {"query": "I need a 2D dimensioned datasheet of this enclosure - I shot front, top and side photos and each one has a printed checkerboard marker next to it for scale", "should_trigger": true},
+  {"query": "how big is this part really? attaching an image that has an aruco marker in the frame for reference", "should_trigger": true},
+  {"query": "turn these three phone pics of my robot chassis into an engineering drawing with measurements in millimetres", "should_trigger": true},
+  {"query": "I printed a charuco board and set it beside my 3d-printed part then photographed it - extract the length, width and height", "should_trigger": true},
+  {"query": "can you generate an SVG with dimension lines showing the size of the object in this photo? there's a scale reference in the shot", "should_trigger": true},
+  {"query": "measure the overall size and the mounting-hole spacing of this PCB from a photo - I put a coin of known diameter in the shot for scale", "should_trigger": true},
+  {"query": "produce a mechanical drawing in mm from my photos and give me a DXF so I can tweak it in FreeCAD after", "should_trigger": true},
+  {"query": "reverse-engineer the dimensions of this little gadget from pictures, I have a ruler in each one", "should_trigger": true},
+
+  {"query": "detect and count how many screws are scattered in this photo of my workbench", "should_trigger": false},
+  {"query": "I walked all the way around my sculpture taking about 50 photos, reconstruct a full 3D mesh from them", "should_trigger": false},
+  {"query": "calibrate my robot's camera with a checkerboard and give me the intrinsic matrix and distortion coefficients", "should_trigger": false},
+  {"query": "run YOLO on this image to find surface defects on the casting", "should_trigger": false},
+  {"query": "convert the dimensioned drawing inside this PDF datasheet into a CAD file", "should_trigger": false},
+  {"query": "crop and resize these product photos to 1000x1000 for my web store", "should_trigger": false},
+  {"query": "estimate the distance to the obstacle in front of my robot using the depth camera", "should_trigger": false},
+  {"query": "build a dashboard that charts the dimensions of every part in my inventory database", "should_trigger": false},
+  {"query": "measure the tilt angle of this ramp from the IMU accelerometer readings", "should_trigger": false}
+]

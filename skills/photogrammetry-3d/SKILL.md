@@ -4,10 +4,13 @@ description: >
   Reconstruct a metric 3D mesh of an object from many overlapping phone photos using COLMAP
   Structure-from-Motion + Multi-View Stereo, scaled and aligned from a ChArUco board. Use when
   the user wants a 3D model / mesh / point cloud from photos, photogrammetry, COLMAP/SfM/MVS,
-  scan an object into OBJ/STL/PLY/STEP, measure a 3D object's oriented bounding box or hole
+  scan a real object into OBJ/STL/PLY/STEP, measure a 3D object's oriented bounding box or hole
   diameters from a photo set, or turn a turntable/orbit capture into a CAD model. Downstream of
   the `dim-diagram` skill: it consumes dim-diagram's metric bundle (scale, canonical axes,
-  silhouettes) plus the photo set to build and validate the model.
+  silhouettes) plus the photo set to build and validate the model. Needs MANY overlapping photos;
+  for a single photo (or 3 orthographic shots) and a flat 2D dimensioned drawing, use dim-diagram
+  instead. Not for mesh file-format conversion (e.g. STL->OBJ), panorama stitching, SLAM/visual
+  odometry, or NeRF / gaussian-splat view synthesis.
 ---
 
 # Phone Photos → Metric 3D Mesh (`photogrammetry-3d`)

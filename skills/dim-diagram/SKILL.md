@@ -3,10 +3,13 @@ name: dim-diagram
 description: >
   Turn phone photos of an object into a CAD-style 3-view dimensioned drawing. Use when the user
   wants to measure an object's real dimensions from a photo, generate a 2D dimensional drawing or
-  datasheet, extract length/width/height or hole sizes from an image with a ruler or ChArUco/ArUco
-  reference, rectify a photo to metric scale, or produce an SVG/PDF/DXF engineering sheet. Covers
-  ChArUco board printing, phone capture for accuracy, OpenCV homography rectification, sub-pixel
-  measurement, and ezdxf drawing output.
+  datasheet, extract length/width/height or hole sizes from an image that contains a scale
+  reference (a ruler, a ChArUco/ArUco marker, a coin, or any object of known size), rectify a
+  photo to metric scale, or produce an SVG/PDF/DXF engineering sheet. Covers ChArUco board
+  printing, phone capture for accuracy, OpenCV homography rectification, sub-pixel measurement,
+  and ezdxf drawing output. This is for 2D measurement and drawings from one photo per view;
+  for a full 3D mesh/model reconstructed from many overlapping photos, use photogrammetry-3d
+  instead.
 ---
 
 # Photo → CAD-style Dimensioned Drawing (`dim-diagram`)
