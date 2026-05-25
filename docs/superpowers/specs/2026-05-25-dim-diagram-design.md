@@ -40,7 +40,10 @@ on every measurement. Sub-millimetre / metrology-grade is explicitly out of scop
 
 ### Non-goals
 - Full 3D reconstruction / multi-image bundle-adjustment photogrammetry (would need many
-  photos; contradicts "one photo per view").
+  photos; contradicts "one photo per view"). **This is handled by the separate sibling skill
+  `photogrammetry-3d`** (see `2026-05-25-photogrammetry-3d-design.md`), which can hand
+  orthographic projections back to this skill's `draw` renderer. The two skills **share** the
+  printable ChArUco board asset (§6) and the `draw` (ezdxf) module.
 - Sub-millimetre metrology (needs a controlled rig or calipers).
 - Measuring occluded / internal features not visible in any single view.
 - Real-time / video processing.
