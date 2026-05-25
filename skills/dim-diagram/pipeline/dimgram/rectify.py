@@ -43,6 +43,9 @@ def rectify_to_metric(image_bgr: np.ndarray, det, target_px_per_mm: float = 4.0)
     out_h = min(int(np.ceil(max_xy[1] - min_xy[1])), 20000)
     warped = cv2.warpPerspective(image_bgr, Ht, (out_w, out_h))
 
-    inliers = mask.ravel().sum() if mask is not None else len(src)
-    sigma_scale = 1.0 / max(1.0, np.sqrt(inliers))         # rough scale uncertainty proxy
+    # Fractional scale uncertainty from homography reprojection RMS over the board span.
+    proj = cv2.perspectiveTransform(src.reshape(-1, 1, 2), H).reshape(-1, 2)
+    rms_px = float(np.sqrt(np.mean(np.sum((proj - dst) ** 2, axis=1))))
+    span_px = float(np.linalg.norm(dst.max(axis=0) - dst.min(axis=0)))
+    sigma_scale = rms_px / max(span_px, 1e-6)
     return RectifyResult(warped, 1.0 / target_px_per_mm, Ht, tilt, sigma_scale)
