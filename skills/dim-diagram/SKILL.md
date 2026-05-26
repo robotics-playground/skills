@@ -106,6 +106,18 @@ python -m venv .venv && .venv/bin/pip install -e .         # add '.[sam]' for th
 
 ---
 
+## Platform & GPU support
+
+The core pipeline (OpenCV, numpy, ezdxf, matplotlib) is pure-Python and runs identically on
+**macOS, Windows, and Linux** — no GPU required. Only the optional SAM backend uses a GPU, and
+it auto-selects the device: **CUDA** on Windows/Linux with an NVIDIA card, **Metal (MPS)** on
+Apple Silicon, and **CPU** otherwise (`dimgram/device.py`; an unsupported accelerator op falls
+back to CPU automatically). Install notes:
+
+- **macOS / Linux:** `python -m venv .venv && .venv/bin/pip install -e '.[sam]'`
+- **Windows (CUDA):** `py -m venv .venv && .venv\Scripts\pip install -e .[sam]` — install a
+  CUDA-enabled PyTorch wheel from pytorch.org if you want GPU SAM; the rest needs nothing special.
+
 ## Accuracy at a Glance
 
 Target **±1–2 %**, realistic ~0.5–1 % with care. The levers, by leverage (full detail in

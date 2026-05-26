@@ -32,15 +32,25 @@ class SamSegmenter:
     mask is pixel-coarse — measurement still relies on the sub-pixel refinement stage.
     Install with: pip install '.[sam]'."""
 
-    def __init__(self, model: str = "mobile_sam.pt", point: tuple[int, int] | None = None):
+    def __init__(self, model: str = "mobile_sam.pt", point: tuple[int, int] | None = None,
+                 device: str | None = None):
         from ultralytics import SAM   # lazy: keeps torch out of the core install
+        from .device import select_torch_device
         self._model = SAM(model)
         self._point = point
+        self._device = select_torch_device(device)   # cuda (Win/Linux) -> mps (Mac) -> cpu
 
     def segment(self, image_bgr: np.ndarray) -> np.ndarray:
         h, w = image_bgr.shape[:2]
         px, py = self._point or (w // 2, h // 2)
-        res = self._model.predict(image_bgr, points=[[px, py]], labels=[1], verbose=False)
+        try:
+            res = self._model.predict(image_bgr, points=[[px, py]], labels=[1],
+                                      device=self._device, verbose=False)
+        except Exception:
+            # an accelerator op may be unsupported (e.g. some MPS kernels) -> retry on CPU
+            self._device = "cpu"
+            res = self._model.predict(image_bgr, points=[[px, py]], labels=[1],
+                                      device="cpu", verbose=False)
         masks = res[0].masks
         if masks is None or len(masks.data) == 0:
             return np.zeros((h, w), np.uint8)
