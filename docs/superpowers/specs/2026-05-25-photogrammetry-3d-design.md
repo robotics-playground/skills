@@ -18,8 +18,10 @@ Build a **metric 3D mesh** of an object by **fusing `dim-diagram`'s output with 
 set**. The user first runs `dim-diagram` (3 orthographic views → metric measurements, scale,
 silhouettes), then feeds that **bundle** — together with a set of **overlapping photos**
 (handheld orbit *or* turntable) and **other input** (camera calibration, masks) — into this
-skill. **COLMAP** Structure-from-Motion + Multi-View Stereo reconstructs the geometry; the
-`dim-diagram` bundle supplies the two things photogrammetry struggles with most:
+skill. **COLMAP** does Structure-from-Motion (sparse, CPU) and **OpenMVS** does the dense
+reconstruction + mesh; this pairing runs on **both a CUDA Windows/Linux PC (GPU-accelerated)
+and an Apple-Silicon Mac (CPU)** from one code path. The `dim-diagram` bundle supplies the two
+things photogrammetry struggles with most:
 
 - **Absolute scale** — COLMAP is scale-ambiguous; `dim-diagram`'s ChArUco-derived `mm_per_px`
   and board pose fix the metric scale directly.
@@ -86,9 +88,12 @@ reflective / featureless / transparent surfaces are out of scope.
 
 ## 4. Architecture
 
-Pipeline = **ingest → sfm → mvs → mesh → register → carve → measure → export**. COLMAP does the
-heavy reconstruction; the `dim-diagram` bundle drives scale, alignment, silhouette carving, and
-validation; Open3D / PyMeshLab handle mesh ops and measurement.
+Pipeline = **ingest → sfm → mvs → mesh → register → carve → measure → export**. **COLMAP does
+sparse SfM (CPU, all platforms); OpenMVS does dense + mesh (CUDA on NVIDIA, CPU on Apple
+Silicon)** — one dense path that runs on both a CUDA Windows/Linux box and a Mac. The
+`dim-diagram` bundle drives scale, alignment, silhouette carving, and validation; Open3D /
+PyMeshLab handle mesh cleanup and measurement. `photrecon.platform` detects OS/GPU and selects
+the OpenMVS CUDA/CPU flag at runtime.
 
 ```
 photo set ─► ingest ─► sfm ─► mvs ─► mesh ─► register ─► carve ─► measure ─► export
@@ -101,9 +106,9 @@ bundle ───────┘ │              (dense)(clean)  │            
 | Module | Input → Output | Key tools / notes |
 |---|---|---|
 | `ingest` | photo set + **bundle** + optional masks → validated inputs | Read `dim-diagram` bundle (scale, axes, silhouettes, `camera.yaml`); EXIF; **turntable masking** (segment object so static background isn't reconstructed) via `SamSegmenter` reuse or color key. |
-| `sfm` | images → camera poses + sparse cloud | `pycolmap`: `extract_features` → `match_*` → `incremental_mapping`. Seed intrinsics from the bundle's `camera.yaml`. |
-| `mvs` | poses + images → dense point cloud | COLMAP `patch_match_stereo` + `stereo_fusion`. **GPU strongly recommended.** |
-| `mesh` | dense cloud → cleaned mesh | Poisson (`poisson_mesher` / Open3D) → PyMeshLab cleanup: remove floaters, decimate, fill holes. |
+| `sfm` | images → camera poses + sparse cloud | `pycolmap`: `extract_features` → `match_*` → `incremental_mapping`. **CPU, cross-platform** (Windows/Linux/macOS). Seed intrinsics from the bundle's `camera.yaml`. |
+| `mvs` | poses + images → dense cloud + mesh | **OpenMVS** (`DensifyPointCloud` → `ReconstructMesh` → `RefineMesh` → `TextureMesh`). **Cross-platform single path**: uses **CUDA on NVIDIA** (Windows/Linux, fast), **CPU on Apple Silicon** (slower). COLMAP's own `patch_match_stereo` is *not* used (CUDA-only). `photrecon.platform.detect_compute()` picks the OpenMVS CUDA/CPU flag at runtime. |
+| `mesh` | dense cloud → cleaned mesh | OpenMVS `ReconstructMesh`/`RefineMesh` output → PyMeshLab cleanup: remove floaters, decimate, fill holes. |
 | `register` | mesh + bundle → **metric, canonically-aligned** mesh | Detect the **shared ChArUco markers** in the photo set, triangulate, and solve the similarity transform that maps the reconstruction onto the bundle's metric frame → applies **both scale and front/top/side axes from `dim-diagram`** (replaces self-derived scale + PCA alignment). |
 | `carve` | mesh + bundle silhouettes → refined mesh | Use the 3 metric silhouettes as a **visual-hull bound**: clip strays and flag/fill texture-poor regions outside the hull. Optional but high-value for noisy reconstructions. |
 | `measure` | aligned mesh + bundle → measurement set + validation | Open3D oriented bounding box → L×W×H; RANSAC plane/cylinder/sphere fits for faces & hole diameters; point-pick distances. **Cross-check vs the bundle's L×W×H + feature dims → discrepancy report.** Uncertainty from fit residuals + bundle scale σ. |
@@ -205,15 +210,25 @@ applies only to professional coded-target rigs. Worse on shiny/featureless objec
 
 ---
 
-## 8. Dependencies
+## 8. Dependencies & cross-platform support
 
-- **Core:** `pycolmap` (or COLMAP binary), `open3d`, `pymeshlab`/`trimesh`, `numpy`,
-  `opencv-contrib-python` (markers for registration), `PyYAML`.
+- **Python (pip, cross-platform):** `pycolmap` (COLMAP SfM bindings), `open3d`,
+  `pymeshlab`/`trimesh`, `numpy`, `opencv-contrib-python` (markers for registration), `PyYAML`.
+- **System binaries (not pip):** **OpenMVS** (dense + mesh) and optionally the COLMAP CLI —
+  installed via the shipped Docker images or natively (Homebrew/conda on macOS).
 - **Bundle ingest:** the `dim-diagram` package (shared `ViewMeasurement`/`scale.yaml`/
   `camera.yaml` readers) or a small shared schema module.
-- **GPU strongly recommended** (CUDA) for `patch_match_stereo`; CPU works but is slow.
-- **Optional STEP:** FreeCAD / `pythonocc-core`. **Optional masking:** `ultralytics` (MobileSAM).
-- **Distribution:** ship a **Dockerfile** (COLMAP + CUDA).
+- **Compute model (the cross-platform core):** SfM is CPU on all platforms. Dense is OpenMVS:
+  **CUDA on NVIDIA** (Windows/Linux, fast), **CPU on Apple Silicon** (works, slower).
+  `photrecon.platform.detect_compute()` probes OS + `nvidia-smi` and sets `openmvs_use_cuda`;
+  `photrecon.platform.doctor()` prints the plan. There is **one dense code path** — only the
+  CUDA/CPU flag differs — so behaviour is identical across machines, just faster on a GPU.
+- **Distribution:** two Dockerfiles — `docker/Dockerfile.cuda` (`nvidia/cuda` base, OpenMVS
+  built `-DOpenMVS_USE_CUDA=ON`, run with `--gpus all`) and `docker/Dockerfile.cpu`
+  (Linux/CI, CUDA OFF). **macOS:** Docker can't pass through Metal, so Mac users install
+  natively (brew/conda) and run OpenMVS on CPU — same backend, on the host.
+- **Optional STEP:** FreeCAD / `pythonocc-core`. **Optional masking:** `ultralytics` (MobileSAM,
+  which itself auto-selects CUDA/MPS/CPU — see `dim-diagram/device.py`).
 
 ---
 
@@ -237,17 +252,20 @@ skills/photogrammetry-3d/
   SKILL.md
   references/
     capture-guide.md            # orbit + turntable, surface prep, two-capture flow
-    reconstruction-colmap.md    # pycolmap SfM/MVS, masking, meshing
+    reconstruction.md           # COLMAP SfM + OpenMVS dense, masking, meshing, platform/GPU
     bundle-and-registration.md  # consuming dim-diagram bundle; marker registration; carving
     measurement-3d.md           # OBB, RANSAC primitives, validation vs bundle, export
   pipeline/
-    pyproject.toml              # core deps + [step]/[sam] extras
-    Dockerfile                  # COLMAP + CUDA
+    pyproject.toml              # pip deps + [step] extra (OpenMVS/COLMAP are system binaries)
+    docker/
+      Dockerfile.cuda           # nvidia/cuda base; OpenMVS built with CUDA
+      Dockerfile.cpu            # Linux/CI; OpenMVS CPU (macOS installs natively)
     photrecon/
       __init__.py
+      platform.py               # [implemented] OS/GPU detection -> backend plan
       ingest.py                 # photo set + bundle + masks
-      sfm.py
-      mvs.py
+      sfm.py                    # COLMAP (pycolmap), CPU
+      mvs.py                    # OpenMVS densify+mesh (CUDA or CPU per platform.py)
       mesh.py
       register.py               # scale + canonical alignment from bundle markers
       carve.py                  # silhouette visual-hull refinement
@@ -262,14 +280,15 @@ skills/photogrammetry-3d/
 
 ## 11. Implementation phasing (for the plan)
 
+0. **[done] `platform.py`** (OS/GPU detection → backend plan) + **Dockerfiles** (CUDA + CPU).
 1. **Bundle schema + `ingest`** (read `dim-diagram` bundle, photo set, masks) + CLI skeleton.
 2. **`sfm`** (pycolmap poses + sparse, intrinsics from bundle) with synthetic tests.
-3. **`mvs` + `mesh`** (dense + Poisson + cleanup).
+3. **`mvs` + `mesh`** (OpenMVS densify+mesh via `platform.py` CUDA/CPU flag → PyMeshLab cleanup).
 4. **`register`** (shared-marker similarity transform → metric + canonical frame from bundle).
 5. **`carve`** (silhouette visual-hull refinement) — optional but high value.
 6. **`measure` + validation** (OBB + RANSAC + cross-check vs bundle).
 7. **`export`** (OBJ/PLY/STL + measurement/validation JSON).
-8. **SKILL.md + references**, Dockerfile, worked example.
+8. **SKILL.md + references**, worked example (Dockerfiles already in phase 0).
 9. **STEP export** (optional) + texture (optional).
 
 MVP = phases 1–4 + 6–7 (registered metric mesh + validated measurements + export). Carving and
@@ -291,10 +310,10 @@ STEP are enhancements. **Depends on `dim-diagram` shipping its bundle output (it
 
 ## 13. Key references (from research)
 
-- COLMAP / pycolmap: https://colmap.github.io/ , https://github.com/colmap/pycolmap
+- COLMAP / pycolmap (SfM): https://colmap.github.io/ , https://github.com/colmap/pycolmap
+- OpenMVS (cross-platform dense + mesh; CUDA optional): https://github.com/cdcseacave/openMVS
 - Open3D mesh + OBB + RANSAC: http://www.open3d.org/docs/release/
 - PyMeshLab cleanup: https://pymeshlab.readthedocs.io/
 - Visual hull / shape-from-silhouette background: https://en.wikipedia.org/wiki/Visual_hull
 - Photogrammetry accuracy practices: https://www.photomodeler.com/pm-kb/getting-the-highest-possible-accuracy/
 - ArUco detection (markers for registration): https://docs.opencv.org/4.x/d5/dae/tutorial_aruco_detection.html
-```

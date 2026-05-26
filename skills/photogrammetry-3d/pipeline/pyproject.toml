@@ -1,0 +1,32 @@
+[project]
+name = "photrecon"
+version = "0.0.1"
+description = "Photos -> metric 3D mesh (COLMAP SfM + OpenMVS dense), cross-platform"
+requires-python = ">=3.9"
+# pip-installable deps. NOTE: OpenMVS and the COLMAP CLI are SYSTEM binaries (see docker/),
+# not pip packages; pycolmap provides COLMAP's SfM via Python bindings.
+dependencies = [
+    "pycolmap>=0.6",
+    "open3d>=0.18",
+    "pymeshlab>=2023.12",
+    "trimesh>=4.0",
+    "numpy>=1.26",
+    "opencv-contrib-python>=4.10",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+# step export is best-effort via FreeCAD / pythonocc-core (not always pip-simple)
+step = ["pythonocc-core>=7.8"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["photrecon*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

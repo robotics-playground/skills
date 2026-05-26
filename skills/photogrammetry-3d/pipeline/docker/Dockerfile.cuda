@@ -1,0 +1,29 @@
+# photogrammetry-3d — CUDA image (Linux, or Windows via WSL2 + NVIDIA Container Toolkit)
+# Dense reconstruction (OpenMVS) runs on the GPU here. COLMAP SfM uses pycolmap (CPU).
+# Build:  docker build -f docker/Dockerfile.cuda -t photrecon:cuda .
+# Run:    docker run --gpus all -v $PWD:/work photrecon:cuda photrecon doctor
+FROM nvidia/cuda:12.4.1-devel-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential cmake git python3 python3-pip python3-dev \
+        libboost-all-dev libeigen3-dev libopencv-dev libcgal-dev \
+        libsuitesparse-dev libfreeimage-dev libgmp-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# --- OpenMVS (built WITH CUDA) + its VCGlib dependency ---
+WORKDIR /opt
+RUN git clone https://github.com/cdcseacave/VCG.git vcglib && \
+    git clone --recurse-submodules https://github.com/cdcseacave/openMVS.git && \
+    cmake -S openMVS -B openMVS/build \
+        -DVCG_ROOT=/opt/vcglib -DOpenMVS_USE_CUDA=ON -DCMAKE_BUILD_TYPE=Release && \
+    cmake --build openMVS/build -j"$(nproc)" --target install
+
+# --- Python deps (pycolmap provides COLMAP SfM bindings; Open3D/PyMeshLab for mesh ops) ---
+COPY pyproject.toml /app/pyproject.toml
+COPY photrecon /app/photrecon
+WORKDIR /app
+RUN pip3 install --no-cache-dir -e .
+
+ENV PHOTRECON_FORCE_CUDA=1
+CMD ["python3", "-m", "photrecon.platform"]

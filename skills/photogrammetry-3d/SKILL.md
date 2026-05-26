@@ -17,13 +17,15 @@ description: >
 
 > **Quick navigation**
 > - How to capture (orbit + turntable, surface prep) -> `references/capture-guide.md`
-> - COLMAP SfM/MVS, masking, meshing -> `references/reconstruction-colmap.md`
+> - COLMAP SfM + OpenMVS dense, masking, meshing, platform/GPU -> `references/reconstruction.md`
 > - Consuming the dim-diagram bundle; marker registration; silhouette carving -> `references/bundle-and-registration.md`
 > - 3D measurement (OBB, RANSAC), validation vs bundle, export -> `references/measurement-3d.md`
 
-> **Status:** Design + guidance skill. The runnable pipeline (`photrecon`) is specced in
-> `docs/superpowers/specs/2026-05-25-photogrammetry-3d-design.md` and not yet implemented; this
-> SKILL.md captures the method and the interfaces so the work can proceed against a fixed design.
+> **Status:** Design + guidance skill. The cross-platform **compute-detection layer**
+> (`pipeline/photrecon/platform.py`) and **Dockerfiles** (CUDA + CPU) are implemented; the rest
+> of the runnable pipeline (`photrecon` reconstruct/measure/export) is specced in
+> `docs/superpowers/specs/2026-05-25-photogrammetry-3d-design.md` and not yet built. This
+> SKILL.md captures the method and interfaces so the work can proceed against a fixed design.
 
 ---
 
@@ -55,15 +57,34 @@ bundle ───────┘ │              (dense)(clean)  │            
 | Stage | What happens |
 |-------|--------------|
 | **ingest** | Load photo set + dim-diagram bundle (+ turntable masks) |
-| **sfm** | `pycolmap` feature extraction/matching/mapping → camera poses + sparse cloud |
-| **mvs** | COLMAP `patch_match_stereo` + `stereo_fusion` → dense cloud (GPU recommended) |
-| **mesh** | Poisson meshing + PyMeshLab cleanup (floaters, decimate, fill holes) |
+| **sfm** | `pycolmap` feature extraction/matching/mapping → camera poses + sparse cloud (CPU, all platforms) |
+| **mvs** | **OpenMVS** densify+mesh → dense cloud + mesh. **CUDA on NVIDIA, CPU on Apple Silicon** — one path, device picked by `photrecon.platform` |
+| **mesh** | OpenMVS mesh + PyMeshLab cleanup (floaters, decimate, fill holes) |
 | **register** | Shared ChArUco markers → similarity transform onto the bundle's **metric, canonical** frame |
 | **carve** | Bundle silhouettes as a visual-hull bound — clip strays, fill texture-poor holes |
 | **measure** | Oriented bounding box (L×W×H) + RANSAC plane/cylinder fits; **cross-check vs bundle dims** |
 | **export** | OBJ/PLY/STL + best-effort STEP + measurement & validation JSON |
 
-## Quick Start (intended CLI; pipeline not yet implemented)
+## Platform & GPU support (cross-platform by design)
+
+Runs on **Windows/Linux with an NVIDIA CUDA GPU** *and* on **Apple-Silicon macOS** from one
+code path. SfM (COLMAP/pycolmap) is CPU on every platform; dense reconstruction is **OpenMVS**,
+which uses **CUDA when an NVIDIA GPU is present** (fast) and **CPU on Mac** (works, slower on big
+sets). `photrecon.platform` detects OS + `nvidia-smi` and sets the OpenMVS CUDA/CPU flag — check
+it with the implemented `doctor`:
+
+```bash
+python -m photrecon.platform        # prints the detected OS/GPU + backend plan
+```
+
+Install:
+- **Windows/Linux + NVIDIA:** `docker build -f docker/Dockerfile.cuda -t photrecon:cuda .`
+  then `docker run --gpus all -v $PWD:/work photrecon:cuda ...`
+- **Linux/CI (CPU):** `docker/Dockerfile.cpu`.
+- **macOS:** install natively (Homebrew/conda — COLMAP + build OpenMVS); Docker can't reach the
+  Apple GPU, so dense runs on CPU on the host (same OpenMVS backend).
+
+## Quick Start (intended CLI; reconstruct/measure/export not yet implemented)
 
 ```bash
 # 0. Run dim-diagram first to get ./bundle (scale + silhouettes + dims).

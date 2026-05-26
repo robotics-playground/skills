@@ -1,0 +1,30 @@
+# photogrammetry-3d — CPU image (Linux / CI; OpenMVS dense runs on CPU, no GPU needed)
+# Build:  docker build -f docker/Dockerfile.cpu -t photrecon:cpu .
+# Run:    docker run -v $PWD:/work photrecon:cpu photrecon doctor
+#
+# macOS note: Docker Desktop on Mac CANNOT pass through the Apple GPU (Metal), so a container
+# gives you no acceleration. Apple-Silicon users should install natively instead
+# (Homebrew/conda: `brew install colmap` + build OpenMVS, or conda-forge), which still runs
+# OpenMVS dense on CPU — same backend, just on the host. This CPU image targets Linux/CI.
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential cmake git python3 python3-pip python3-dev \
+        libboost-all-dev libeigen3-dev libopencv-dev libcgal-dev \
+        libsuitesparse-dev libfreeimage-dev libgmp-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt
+RUN git clone https://github.com/cdcseacave/VCG.git vcglib && \
+    git clone --recurse-submodules https://github.com/cdcseacave/openMVS.git && \
+    cmake -S openMVS -B openMVS/build \
+        -DVCG_ROOT=/opt/vcglib -DOpenMVS_USE_CUDA=OFF -DCMAKE_BUILD_TYPE=Release && \
+    cmake --build openMVS/build -j"$(nproc)" --target install
+
+COPY pyproject.toml /app/pyproject.toml
+COPY photrecon /app/photrecon
+WORKDIR /app
+RUN pip3 install --no-cache-dir -e .
+
+CMD ["python3", "-m", "photrecon.platform"]
