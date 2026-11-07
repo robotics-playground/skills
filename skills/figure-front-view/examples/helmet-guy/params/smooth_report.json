@@ -64,13 +64,13 @@
   "tuck_px": 7.68
  },
  "SUIT_gap_top": {
-  "y_flat": 338.71507893507635,
-  "bulge_depth_px": 1.0959645042839756,
-  "bulge_center_px": -3.8255106305022935,
-  "bulge_half_width_px": 14.042448717198122
+  "y_flat": 338.71489948664146,
+  "bulge_depth_px": 1.096131171706121,
+  "bulge_center_px": -3.8255260996171785,
+  "bulge_half_width_px": 14.043473472944866
  },
- "SUIT_legs_max_shift_px": 2.27,
- "SUIT_lower_smoothing_max_shift_px": 1.934,
+ "SUIT_legs_max_shift_px": 2.272,
+ "SUIT_lower_smoothing_max_shift_px": 1.94,
  "SUIT": {
   "corners_kept": 20,
   "max_dev_px": 0.797,

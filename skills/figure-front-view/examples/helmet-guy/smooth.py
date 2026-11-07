@@ -93,8 +93,11 @@ for k in Z.files:
     if k in ('UP','X0','Y0'): continue
     if k in ('CRAVAT','JACKET'):   # exact straight-line geometry: shirt V and the jacket panel with that V cut out
         cq=json.load(open('cravat_poly.json')); Pp=_fit['P']; Xb=_fit['X']['body']
-        v=Polygon(cq['poly'])
-        out[k]=v if k=='CRAVAT' else M_.torso(Pp,Xb).difference(v)
+        y_top=Pp['n_cy']                              # suit top edge extends up to the nose (hidden behind face/helmet)
+        kk=(cq['w_at_v']-cq['w_top_at_chin'])/(cq['y_v']-cq['y_chin']); wt=cq['w_top_at_chin']+kk*(y_top-cq['y_chin'])
+        v=Polygon([(cq['xc']-wt,y_top),(cq['xc']+wt,y_top),(cq['xc']+cq['w_at_v'],cq['y_v']),(cq['xc'],cq['y_tip']),(cq['xc']-cq['w_at_v'],cq['y_v'])])
+        jacket=__import__('shapely.geometry',fromlist=['box']).box(Xb-Pp['t_w'],y_top,Xb+Pp['t_w'],Pp['t_bot'])
+        out[k]=v if k=='CRAVAT' else jacket.difference(v)
         report[k]=dict(corners_kept=5,max_dev_px=0.0,source='exact straight-line geometry'); continue
     if k=='ARMS':     # exact analytic ovals, no tracing
         out[k]=M_.arms(_fit['P'],_fit['X']['body']).intersection(Polygon([(0,0),(999,0),(999,435.8),(0,435.8)]))

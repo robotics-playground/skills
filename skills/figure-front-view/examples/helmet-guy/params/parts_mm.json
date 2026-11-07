@@ -69,7 +69,7 @@
    "length": 8.71,
    "v_depth": 3.94,
    "bbox_w": 4.78,
-   "bbox_h": 13.99,
+   "bbox_h": 18.89,
    "bbox_bottom": 74.14
   },
   "HANDS": {
@@ -114,7 +114,7 @@
     "gap_bottom_w": 24.66
    },
    "bbox_w": 43.98,
-   "bbox_h": 58.97,
+   "bbox_h": 63.87,
    "bbox_bottom": 29.16
   },
   "BOOTS": {
