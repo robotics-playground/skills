@@ -1,0 +1,12 @@
+[
+  {"query": "reverse engineer this desk toy from the product picture and my phone photo, I want a clean front view to 3d print it", "should_trigger": true},
+  {"query": "turn this character standee image into a DXF with each colour on its own layer", "should_trigger": true},
+  {"query": "separate the accessories of this figurine (helmet, glasses, jacket, boots) into parts with dimensions", "should_trigger": true},
+  {"query": "my traced outline of this acrylic keychain character is jagged, clean it up but keep the face details", "should_trigger": true},
+  {"query": "make a vector front view of this multi-colour 3d printed figure, the helmet sits on top of the face", "should_trigger": true},
+  {"query": "measure this steel bracket from a photo with a ruler next to it", "should_trigger": false},
+  {"query": "build a 3d mesh of my sculpture from 80 orbit photos", "should_trigger": false},
+  {"query": "convert this STL to OBJ", "should_trigger": false},
+  {"query": "detect toys on a conveyor with YOLO", "should_trigger": false},
+  {"query": "copy this cartoon character so I can sell keychains of it", "should_trigger": false}
+]

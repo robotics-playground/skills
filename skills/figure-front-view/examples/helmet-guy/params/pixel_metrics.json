@@ -1,0 +1,19 @@
+{
+ "nominal_mm_per_px": 0.3152,
+ "measured_edge_width_px": 1.6000000000000005,
+ "simulated_widths": {
+  "1.0": 1.4000000000000004,
+  "1.5": 1.7000000000000006,
+  "2.0": 2.2,
+  "2.5": 2.8000000000000003,
+  "3.0": 3.0000000000000004
+ },
+ "effective_source_pixel_px": 1.33,
+ "effective_source_pixel_mm": 0.42,
+ "edge_noise_rms_px": 0.026,
+ "edge_noise_rms_mm": 0.008,
+ "smoothing_sigma_px": 0.166,
+ "max_shift_px": 0.333,
+ "corner_scale_px": 1.33,
+ "max_shift_mm": 0.105
+}

@@ -1,0 +1,245 @@
+<title>Helmet Guy Front View</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: an engineering drawing sheet — title block up top, then the evidence (overlay), the drawing, the parts list, the method. */
+:root{
+  --paper:#f2f4f7; --sheet:#ffffff; --ink:#17202b; --muted:#5b6675; --rule:#d5dbe3; --accent:#1f45d6; --accent-soft:#e3e9fb; --flag:#a4441b; --flag-soft:#fbeae2;
+  --pla-blue:#1f45d6; --pla-white:#f1f1ec; --pla-black:#222326; --edge:#0d0f12;
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0f141b; --sheet:#161d26; --ink:#e4e9f0; --muted:#9aa6b6; --rule:#2a3442; --accent:#8aa4ff; --accent-soft:#1d2a4d; --flag:#f0a07c; --flag-soft:#3a2118;
+  --edge:#5d6878; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#0f141b; --sheet:#161d26; --ink:#e4e9f0; --muted:#9aa6b6; --rule:#2a3442; --accent:#8aa4ff; --accent-soft:#1d2a4d; --flag:#f0a07c; --flag-soft:#3a2118;
+  --edge:#5d6878; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:15px/1.6 var(--f-body);margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 56px}
+.wrap{max-width:1080px;margin:0 auto;display:grid;gap:44px}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;letter-spacing:.01em;text-wrap:balance;margin:0;line-height:1.1}
+h1{font-size:clamp(34px,6vw,54px)}
+h2{font-size:28px}
+h3{font-size:20px}
+p{margin:0;max-width:65ch}
+.eyebrow{font:500 12px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+header{display:grid;gap:14px}
+.lede{font-size:17px;color:var(--ink)}
+/* title block, as on a drawing sheet */
+.tblock{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border:1.5px solid var(--ink);background:var(--sheet)}
+.tblock div{padding:10px 12px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);min-width:0}
+.tblock dt{font:500 10.5px/1.2 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.tblock dd{margin:4px 0 0;font:600 22px/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.tblock dd small{font:400 12px var(--f-body);color:var(--muted)}
+section{display:grid;gap:16px}
+.sechead{display:grid;gap:6px}
+.sechead p{color:var(--muted)}
+/* paints (real PLA colours, same in both themes) */
+.c-blue{fill:var(--pla-blue);background:var(--pla-blue)}
+.c-white{fill:var(--pla-white);background:var(--pla-white)}
+.c-black{fill:var(--pla-black);background:var(--pla-black)}
+.edge{stroke:var(--edge);stroke-width:.12;stroke-linejoin:round}
+.thin{stroke-width:.06}
+/* overlay check */
+.compare{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:start}
+.stage{background:var(--sheet);border:1px solid var(--rule);padding:12px}
+svg.cmp{width:100%;height:auto;display:block}
+svg.cmp .recon{opacity:var(--op,.85);transition:opacity .15s}
+svg.cmp .p{stroke:none}
+svg.cmp.outline .p{fill:none;stroke:#e5242b;stroke-width:.35;vector-effect:non-scaling-stroke}
+svg.cmp.outline .recon{opacity:1}
+.controls{display:grid;gap:14px;align-content:start}
+.ctl{display:grid;gap:6px}
+.ctl label{font:500 13px var(--f-body)}
+.ctl output{font:500 13px var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.toggle{display:flex;gap:10px;align-items:center;font-size:14px}
+.toggle input{width:18px;height:18px;accent-color:var(--accent)}
+.hint{font-size:13.5px;color:var(--muted)}
+.facts{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.facts li{display:grid;grid-template-columns:auto 1fr;gap:10px;font-size:14px;align-items:baseline}
+.facts b{font:600 18px var(--f-display);font-variant-numeric:tabular-nums;min-width:4.2ch}
+/* drawing */
+.drawing{background:#fff;border:1.5px solid var(--ink);padding:12px;display:grid;justify-items:center}
+svg.fv{width:100%;max-width:560px;height:auto}
+svg.fv .dim line{stroke:#0a4fc4;stroke-width:.2}
+svg.fv .dim text{font:3.2px var(--f-mono);fill:#0a4fc4;text-anchor:middle}
+svg.fv .axis{stroke:#d22;stroke-width:.15;stroke-dasharray:3 1 .5 1}
+svg.fv .edge{stroke:#0d0f12}
+.cap{font:12px var(--f-mono);color:#5b6675;justify-self:start}
+/* highlight */
+.hl-on .p{opacity:.18}
+.hl-on .p.hl{opacity:1}
+svg.cmp.outline.hl-on .p.hl{stroke-width:.9}
+/* parts */
+.parts{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.part{display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;padding:14px;background:var(--sheet);border:1px solid var(--rule);outline:none;cursor:default}
+.part:hover,.part:focus-visible{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.tw{width:84px;height:84px;display:grid;place-items:center;background:var(--paper);border:1px solid var(--rule)}
+svg.thumb{width:72px;height:72px}
+.meta{display:grid;gap:6px;align-content:start;min-width:0}
+.note{font-size:13.5px;color:var(--muted)}
+.part dl{margin:4px 0 0;display:grid;gap:2px}
+.part dl div{display:flex;justify-content:space-between;gap:8px;font-size:13px;border-top:1px dashed var(--rule);padding-top:3px}
+.part dt{color:var(--muted);white-space:nowrap}
+.part dd{margin:0;white-space:nowrap;font-family:var(--f-mono);font-size:12.5px;font-variant-numeric:tabular-nums;text-align:right}
+.sw{display:inline-block;width:10px;height:10px;border:1px solid var(--edge);margin-right:6px;vertical-align:-1px}
+.flag{display:inline-block;margin-left:4px;padding:0 6px;font:500 11.5px/1.7 var(--f-mono);color:var(--flag);background:var(--flag-soft);border-radius:3px}
+/* method */
+ol.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:grid;gap:0;border-top:1px solid var(--rule)}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;padding:14px 0;border-bottom:1px solid var(--rule)}
+ol.steps li::before{content:counter(s,decimal-leading-zero);font:600 22px/1 var(--f-display);color:var(--accent)}
+ol.steps h3{font-size:19px;margin-bottom:4px}
+ol.steps p{color:var(--muted);font-size:14.5px}
+/* decisions */
+.asks{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.ask{padding:16px;border:1.5px solid var(--ink);background:var(--sheet);display:grid;gap:6px;align-content:start}
+.ask p{font-size:14px;color:var(--muted)}
+.ask .def{font:500 12.5px var(--f-mono);color:var(--ink)}
+.files{font:13px/1.8 var(--f-mono);background:var(--sheet);border:1px solid var(--rule);padding:14px 16px;overflow-x:auto;margin:0}
+.files span{color:var(--muted)}
+footer{font-size:13px;color:var(--muted);border-top:1px solid var(--rule);padding-top:14px}
+@media (max-width:760px){.compare{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">Reverse engineering · Vinc Studio squat figure · blue-helmet variant</span>
+  <h1>Helmet Guy front view</h1>
+  <p class="lede">A dimensioned front view rebuilt part by part from the straight-on artwork, scaled to the printed toy. Every drawn detail is kept; only pixel defects are removed.</p>
+  <dl class="tblock">
+    <div><dt>Parts</dt><dd>12 <small>incl. base</small></dd></div>
+    <div><dt>Figure height</dt><dd>99.9 <small>mm</small></dd></div>
+    <div><dt>Overall</dt><dd>120.2 <small>mm</small></dd></div>
+    <div><dt>Base</dt><dd>70 × 20.3 <small>mm</small></dd></div>
+    <div><dt>Outline match</dt><dd>0.98 <small>IoU</small></dd></div>
+    <div><dt>Edge tolerance</dt><dd>0.105 <small>mm</small></dd></div>
+  </dl>
+</header>
+
+<section>
+  <div class="sechead">
+    <h2>Check it against the artwork</h2>
+    <p>The rebuilt parts sit exactly on the original pixels. Fade them out to compare, or switch to outlines.</p>
+  </div>
+  <div class="compare">
+    <div class="stage">%%CMP%%</div>
+    <div class="controls">
+      <div class="ctl">
+        <label for="op">Rebuilt parts opacity <output id="opv">85%</output></label>
+        <input id="op" type="range" min="0" max="100" value="85">
+      </div>
+      <label class="toggle" for="ol"><input id="ol" type="checkbox"> Show outlines only</label>
+      <p class="hint">Point at a part in the list below to highlight it here and in the drawing.</p>
+      <ul class="facts">
+        <li><b>0.98</b><span>Overlap between the rebuilt figure and the artwork outline</span></li>
+        <li><b>1.00</b><span>Helmet colour region match</span></li>
+        <li><b>0.96</b><span>Face lines match (glasses, brows, nose, mouth)</span></li>
+        <li><b>0.10</b><span>mm edge tolerance, a quarter of the image's effective pixel</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sechead">
+    <h2>Pixel calibration</h2>
+    <p>The defect tolerance comes from the image, not a guess. Edge sharpness is compared with a simulated perfect edge sampled the same way.</p>
+  </div>
+  <dl class="tblock">
+    <div><dt>Pixel width</dt><dd>0.315 <small>mm per artwork pixel</small></dd></div>
+    <div><dt>Edge spread</dt><dd>1.6 <small>px (perfect edge: 1.4)</small></dd></div>
+    <div><dt>Effective pixel</dt><dd>1.33 <small>px = 0.42 mm</small></dd></div>
+    <div><dt>Edge noise</dt><dd>0.008 <small>mm rms</small></dd></div>
+    <div><dt>Edge tolerance</dt><dd>0.105 <small>mm = ¼ effective px</small></dd></div>
+    <div><dt>Corner scale</dt><dd>1.33 <small>px = 1 effective px</small></dd></div>
+  </dl>
+  <p class="hint">Smoothing may move an edge at most 0.105 mm, the precision limit for reading an edge from one anti-aliased pixel. Anything larger, such as the notch between the two fists or the thumb-base corners, is real drawing and is kept. Rebuilt corner tips are the one exception: they move up to one effective pixel (0.27 mm here) to restore the sharp vertex the image blurred.</p>
+</section>
+
+<section>
+  <div class="sechead">
+    <h2>Front view</h2>
+    <p>Millimetres. Shapes from the artwork, scale from the measured print. Parts are stacked as the seams on the print show: the arms sit in front of the suit, the helmet in front of the head.</p>
+  </div>
+  <div class="drawing">%%FV%%<span class="cap">FRONT VIEW · mm · scale: base width 70 mm, figure height 99.9 mm</span></div>
+</section>
+
+<section>
+  <div class="sechead">
+    <h2>Parts</h2>
+    <p>Each part is complete, including the portion hidden behind the parts in front of it. The base (70 × 20.3 mm, black) is a plain block from your measurements.</p>
+  </div>
+  <div class="parts">%%CARDS%%</div>
+</section>
+
+<section>
+  <div class="sechead">
+    <h2>How it was built</h2>
+    <p>The method follows the research on image-to-CAD: understand the object first, use the image for exact edges, and check every round with numbers and an overlay.</p>
+  </div>
+  <ol class="steps">
+    <li><div><h3>Understand the object</h3><p>A flat three-colour 3D-printed plate in a block base. Eleven parts named, with design rules and the front-to-back order read from seams on your photo.</p></div></li>
+    <li><div><h3>Rank the sources</h3><p>Artwork for shape and design intent, the print photos for real construction, your measurements for scale. Conflicts went to you; you chose the artwork.</p></div></li>
+    <li><div><h3>Fit a simple shape per part</h3><p>Ellipses, rounded boxes and strokes decide which part each region belongs to and complete hidden edges. Where the real print shows a clean geometric shape, the shape is used exactly: the arms are one oval ring (an outer oval minus an inner oval), the jacket is a straight-sided panel, and the cravat is a straight-line V.</p></div></li>
+    <li><div><h3>Trace visible edges, remove only pixel defects</h3><p>Edge pixels are unmixed into the two paints they blend, compression specks are dropped, and curves are smoothed within a tolerance measured from the image itself (below). Corners that the image's softness rounded are rebuilt sharp where both sides are straight.</p></div></li>
+    <li><div><h3>Check every round</h3><p>Overlap scores per part, largest shift in mm, gap and sliver checks between parts, minimum printable thickness, and the overlay above.</p></div></li>
+    <li><div><h3>Report, don't change</h3><p>Features that conflict with printing are flagged for you to decide, never altered.</p></div></li>
+  </ol>
+</section>
+
+<section>
+  <div class="sechead">
+    <h2>Waiting on you</h2>
+    <p>Needed for the next step: a 3D model with one solid per colour, the arm ring as its own rotating piece, and a slot in the base.</p>
+  </div>
+  <div class="asks">
+    <div class="ask"><h3>Plate thickness and slot depth</h3><p>Sets the extrusion and how far the feet sit in the base.</p><span class="def">Default if unknown: 4 mm plate, 6 mm slot</span></div>
+    <div class="ask"><h3>Thin face lines</h3><p>The eyebrows and the 0.5 mm mouth line are thinner than a 0.4 mm nozzle can print as separate colour pieces. Keep as drawn, or print them as raised or engraved lines.</p></div>
+    <div class="ask"><h3>Reusable skill</h3><p>Package this method so an agent can apply it to the other figures on the Vinc sheet or any similar toy.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="sechead"><h2>Files</h2><p>In the session folder, which is deleted when the session ends.</p></div>
+<pre class="files">scratchpad/re/v2/out/
+  toy_front_view_v2.svg        <span>assembled front view with dimensions</span>
+  toy_front_view_parts.dxf     <span>complete parts, one layer each, spline curves</span>
+  toy_print_regions_visible.dxf <span>visible colour regions, gap-free, for a multi-colour print</span>
+  parts/*.dxf                  <span>one file per part</span>
+  parts_mm.json                <span>every dimension in mm</span>
+  part_spec.md                 <span>object understanding, parts, stacking order, method</span>
+  smooth_report.json           <span>largest smoothing shift per part</span></pre>
+</section>
+
+<footer>Character design © Vinc Studio. Reverse-engineered for personal use from the published product sheet and photos of a print.</footer>
+</div>
+
+<script>
+(function(){
+  var op=document.getElementById('op'),opv=document.getElementById('opv'),ol=document.getElementById('ol');
+  var cmp=document.querySelector('svg.cmp'),fv=document.querySelector('svg.fv');
+  function setOp(){cmp.style.setProperty('--op',op.value/100);opv.textContent=op.value+'%'}
+  op.addEventListener('input',setOp);setOp();
+  ol.addEventListener('change',function(){cmp.classList.toggle('outline',ol.checked)});
+  function hl(part){
+    [cmp,fv].forEach(function(svg){
+      svg.classList.toggle('hl-on',!!part);
+      svg.querySelectorAll('.p').forEach(function(p){p.classList.toggle('hl',p.getAttribute('data-part')===part)});
+    });
+  }
+  document.querySelectorAll('.part').forEach(function(card){
+    var k=card.getAttribute('data-part');
+    card.addEventListener('mouseenter',function(){hl(k)});
+    card.addEventListener('mouseleave',function(){hl(null)});
+    card.addEventListener('focus',function(){hl(k)});
+    card.addEventListener('blur',function(){hl(null)});
+  });
+})();
+</script>

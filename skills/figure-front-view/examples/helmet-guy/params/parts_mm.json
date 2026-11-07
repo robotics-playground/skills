@@ -1,0 +1,153 @@
+{
+ "spec": {
+  "_note": "bbox_* = traced detailed part; other values = fitted reference primitive (structure/pose), not used for the outline",
+  "scale_mm_per_artwork_px": 0.3151,
+  "BASE": {
+   "width": 70.0,
+   "height": 20.3,
+   "bbox_w": 70.0,
+   "bbox_h": 20.3,
+   "bbox_bottom": 0.0
+  },
+  "HELMET": {
+   "dome_rx": 20.22,
+   "dome_ry": 19.25,
+   "flap_bottom_above_base": 87.99,
+   "flap_fillet_r": 2.46,
+   "bbox_w": 40.34,
+   "bbox_h": 32.95,
+   "bbox_bottom": 87.25
+  },
+  "FACE": {
+   "half_w": 11.72,
+   "half_h": 9.81,
+   "squircle_n": 2.9,
+   "center_above_base": 94.7,
+   "bbox_w": 29.6,
+   "bbox_h": 23.33,
+   "bbox_bottom": 84.6
+  },
+  "GLASSES": {
+   "lens_spacing": 11.75,
+   "lens_half_w": 4.7,
+   "lens_half_h": 2.17,
+   "lens_n": 2.34,
+   "tilt_deg": -4.0,
+   "bridge_t": 0.88,
+   "bbox_w": 21.39,
+   "bbox_h": 5.0,
+   "bbox_bottom": 93.44
+  },
+  "EYEBROWS": {
+   "spacing": 10.59,
+   "arc_r": 4.6,
+   "span_deg": 65.3,
+   "stroke_t": 0.81,
+   "bbox_w": 17.15,
+   "bbox_h": 2.1,
+   "bbox_bottom": 99.16
+  },
+  "NOSE": {
+   "rx": 0.81,
+   "ry": 0.56,
+   "bbox_w": 1.5,
+   "bbox_h": 1.21,
+   "bbox_bottom": 92.41
+  },
+  "MOUTH": {
+   "half_len": 2.65,
+   "sag": 0.02,
+   "stroke_t": 0.6,
+   "offset_x": 0.36,
+   "bbox_w": 5.84,
+   "bbox_h": 1.87,
+   "bbox_bottom": 88.93
+  },
+  "CRAVAT": {
+   "note": "shirt/tie behind JACKET, visible through V-neck",
+   "width": 4.04,
+   "length": 8.71,
+   "v_depth": 3.94,
+   "bbox_w": 4.78,
+   "bbox_h": 13.99,
+   "bbox_bottom": 74.14
+  },
+  "HANDS": {
+   "note": "two fists on the front of the ARMS",
+   "width": 15.13,
+   "height": 7.43,
+   "corner_r": 1.25,
+   "thumb_spacing": 8.1,
+   "thumb_w": 1.9,
+   "thumb_h": 3.42,
+   "bbox_w": 15.44,
+   "bbox_h": 11.07,
+   "bbox_bottom": 65.72
+  },
+  "ARMS": {
+   "note": "one oval ring: outer oval minus inner oval, centred on the axis",
+   "outer_rx": 30.04,
+   "outer_ry": 17.69,
+   "inner_rx": 18.16,
+   "inner_ry": 11.45,
+   "inner_center_offset_down": 0.69,
+   "center_above_base": 83.42,
+   "band_width_at_sides": 11.88,
+   "bbox_w": 60.07,
+   "bbox_h": 35.38,
+   "bbox_bottom": 65.73
+  },
+  "SUIT": {
+   "note": "jacket + pants as one piece; V-neck = CRAVAT V; ARMS lie in front",
+   "jacket": {
+    "width": 29.38,
+    "height": 29.0,
+    "v_neck_width": 4.04,
+    "v_neck_depth": 14.18
+   },
+   "pants": {
+    "hip_width": 43.82,
+    "ankle_width": 43.38,
+    "hip_fillet_r": 7.69,
+    "crotch_above_base": 50.79,
+    "gap_top_w": 22.29,
+    "gap_bottom_w": 24.66
+   },
+   "bbox_w": 43.98,
+   "bbox_h": 58.97,
+   "bbox_bottom": 29.16
+  },
+  "BOOTS": {
+   "height": 10.71,
+   "ankle_w": 8.25,
+   "toe_reach_from_axis": 23.89,
+   "inner_from_axis": 12.71,
+   "toe_fillet_r": 3.23,
+   "bbox_w": 48.06,
+   "bbox_h": 10.51,
+   "bbox_bottom": 20.53
+  }
+ },
+ "fit_iou": {
+  "head_outline": 0.9458825025192831,
+  "FACE": 0.9367277754007175,
+  "HELMET": 0.9269344059451113,
+  "GLASSES": 0.8394620117327228,
+  "EYEBROWS": 0.5220454545454546,
+  "NOSE": 0.9753954305799648,
+  "MOUTH": 0.5831424644983967,
+  "CRAVAT": 0.5810248933527729,
+  "HANDS": 0.8731454460113058,
+  "JACKET+ARMS": 0.9669342350528657,
+  "PANTS": 0.9710360484836663,
+  "BOOTS": 0.8699068172827568,
+  "WHOLE_SILHOUETTE_artwork_axes": 0.963594114895951,
+  "WHOLE_SILHOUETTE_single_axis": 0.9398762279536319
+ },
+ "axes_px": {
+  "head": 256.4543517238881,
+  "body": 256.8696540733197,
+  "legs": 253.26944239047583,
+  "single": 255.2978649182663
+ }
+}

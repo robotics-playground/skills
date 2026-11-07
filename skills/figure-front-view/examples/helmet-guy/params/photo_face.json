@@ -1,0 +1,21 @@
+{
+ "helmet": {
+  "x0": 350.0,
+  "x1": 759.0,
+  "y0": 273.0,
+  "y1": 624.0,
+  "cx": 554.5,
+  "w": 409.0
+ },
+ "head_circle": {
+  "cx": 557.7620828355268,
+  "cy": 472.2338640009627,
+  "R": 178.39672504443303
+ },
+ "rel": {
+  "dx": 0.007975752654099819,
+  "cy_from_top": 0.4871243618605445,
+  "R": 0.43617781184457954
+ },
+ "_note": "jaw_rel (112 measured edge points) removed: derived outline data of a third-party character"
+}
