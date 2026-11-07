@@ -7,6 +7,11 @@
 - Short corrections ("No, ...", "The top is smaller", "Like the original image").
 - New reference images mid-task ("use this for how it looks in real life").
 
+## Aim: at most 3 user rounds
+Round 1 = spec + questions, round 2 = one numbered edge sheet, round 3 = touch-ups. If you are about to
+send a fourth review request, stop and ask yourself which self-check or rule should have caught it, and
+add it to `checks.py` / the construction rules.
+
 ## How to respond each round
 1. Restate in one line what will change and **what will not**.
 2. Locate the feature in the pixels: zoom the artwork (nearest neighbour) with the current outline.

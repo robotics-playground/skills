@@ -24,6 +24,7 @@ description: >
 > - **What worked, what went wrong, what to try next time (read before starting)** -> `references/lessons-learned.md`
 > - How to run the review loop with the user (screenshots, boxes, numbered marks) -> `references/working-with-the-user.md`
 > - Part-spec template + a complete worked example -> `references/part-spec-template.md`
+> - Research behind regularization, layering and self-critique -> `references/research.md`
 > - Reusable code: `pipeline/figfront/` (tested). Worked project scripts: `examples/helmet-guy/`
 
 ## When this applies
@@ -43,25 +44,38 @@ Typical inputs:
 
 ## The method in one screen
 
+Goal: **the final quality in <= 3 user rounds.** The first project took ~27 rounds; 23 of them were
+things the pipeline could have caught itself (see `references/lessons-learned.md` section 5). So do all
+of the work below BEFORE the user sees anything, then ask once.
+
 ```
-understand -> part spec -> sources & authority -> pixel calibration -> colour unmixing
-   -> per-part shapes (structure only) -> partition & stacking -> trace visible edges
-   -> hidden-part completion -> bounded smoothing + real-corner rebuild
-   -> exact geometry where the print is geometric -> verify (numbers + pixel overlays)
-   -> export (DXF splines per layer, visible-region DXF, SVG, review page) -> user review loop
+ROUND 0 (no user)  understand -> part spec + construction rules -> pixel calibration -> colour unmixing
+                   -> structure fit -> partition & stacking -> trace -> hidden completion
+                   -> regularize (simplest curve per edge) -> exact geometry where the print shows it
+                   -> self-review: checks.* + question list on zoomed overlays -> fix -> repeat
+ROUND 1 (user)     part spec, stacking order, authority table, open questions        (one message)
+ROUND 2 (user)     one review page + numbered edge sheet; user answers by number    (one message)
+ROUND 3 (user)     touch-ups only, each passing the scope guard
 ```
 
 | Phase | Do | Never |
 |---|---|---|
-| **1. Understand** | Write `part_spec.md`: object type, how it is made, every part (incl. accessories), its colour, a primitive, its relations, and the **stacking order** read from seams on the print. Show it to the user. | Start tracing pixels before the parts and their order are agreed. |
-| **2. Sources & authority** | Decide per question which source wins (artwork = shape; print photo = construction, smoothness, hidden sizes; measurement = scale). Write it down. Ask the user when they conflict. | Average two sources silently. |
-| **3. Calibrate the pixel** | Measure nominal mm/px, edge spread vs a simulated ideal edge -> effective pixel; edge noise. Derive tolerance = 1/4 effective px, corner scale = 1 effective px (`figfront.calibrate`). | Hand-pick a smoothing tolerance. |
-| **4. Colour unmixing** | Flat-paint palette; each pixel = a paint or a blend of two paints, labelled by majority (`figfront.unmix`). | HSV thresholds (fringes, bumps, false third colour at blends). |
-| **5. Shapes for structure** | Fit simple primitives per part only to *partition* same-coloured regions (e.g. arm ring vs jacket, both black) and to *complete hidden edges*. | Let a primitive replace a visible traced edge (kills pose/face detail). |
-| **6. Trace + defects** | Sub-pixel contours; round (disk) morphology only; specks never attached at the figure/background edge; bounded spline smoothing; rebuild real corners (straight + non-bending sides). | Diamond morphology; corners on round tips; smoothing beyond the measured tolerance. |
-| **7. Exact geometry** | Where the **print** shows clean geometry (oval ring, straight sides, straight V, circular chin, sharp corners from tangents, continuous spline edges), use exact shapes fitted to the pixels. | Apply geometry the print does not show, or to parts the user did not ask about. |
-| **8. Verify** | Per-part overlays on the zoomed pixels, overlap scores, max shift in mm, slivers/gaps check, printability (< 0.8 mm features). | Trust a score without looking at the pixel overlay. |
-| **9. Review loop** | Publish a review page (overlay slider, dimensioned view, parts sheet). Change **only** what the user points at; show before/after at pixel level. | "Improve" things that were not asked (the user will notice and lose trust). |
+| **1. Understand** | Write `part_spec.md`: object, construction, every part (incl. accessories), colour, primitive, relations, **stacking order** from seams on the print. Apply the construction rules (below). | Trace pixels before parts and order are clear. |
+| **2. Sources & authority** | Per question: artwork = visible shape; print photo = construction, smoothness, hidden sizes; measurement = scale. Note conflicts for round 1. | Average sources silently. |
+| **3. Calibrate the pixel** | `calibrate.metrics`: effective pixel, noise -> fidelity tolerance 1/4 eff px, regularity tolerance 1/2 eff px, corner scale 1 eff px. | Hand-pick tolerances. |
+| **4. Colour unmixing** | `unmix.classify` (pixel = paint or two-paint blend). | HSV thresholds. |
+| **5. Structure + layers** | Primitives only to partition same-coloured regions and complete hidden edges; back parts continue well under front parts. | Let a primitive replace a visible edge. |
+| **6. Trace + regularize** | Sub-pixel trace, disk morphology, `regularize.regularize_polygon`: corners where the boundary breaks, then line < arc < line/arc pieces < spline, keeping coherent drawn features. | Smooth beyond tolerance; corners on round tips. |
+| **7. Exact geometry** | Where the print shows clean geometry: ring = outer - inner oval, straight panels, straight V, circular chin, shared edges between neighbours. | Geometry the print does not show. |
+| **8. Self-review** | `checks.changed_parts`, `overlap_report`, `gaps_and_slivers`, `thin_features`, `same_colour_neighbours`; then answer `checks.SELF_REVIEW_QUESTIONS` on zoomed pixel overlays. Fix and repeat. | Show the user anything that fails a check. |
+| **9. Ask once** | Round 1 questions; round 2 numbered sheet (`review.review_sheet`) on a published review page. | Iterate edge by edge with the user. |
+
+## Construction rules for flat multi-colour figures (defaults; confirm in round 1)
+- Every colour region is a body; same-coloured neighbours with no seam on the print are ONE piece (jacket + pants + boots may be one suit).
+- A part behind another continues well under it (>= 1.5-2 mm or to a landmark): face = full head under hair/helmet; jacket up behind the face to about the nose; shirt up behind the V-neck.
+- A loop/ring is ONE part (outer minus inner) unless the print shows two pieces; parts shown moving stay separate.
+- Visible outlines follow the image; hidden outlines follow anatomy/mechanics and must never show.
+- Neighbours share one geometry along their boundary (jacket V-neck = cravat V).
 
 ## Golden rules (each one cost a review round last time)
 
@@ -81,11 +95,14 @@ python -m pytest skills/figure-front-view/pipeline/tests -q
 ```
 
 ```python
-from figfront import unmix, calibrate, contours, geom, layers, export
+from figfront import unmix, calibrate, contours, geom, layers, export, regularize, checks, review
 lab, names = unmix.classify(unmix.upsample(crop, 6), palette, blur_px=0.3, scale=6)
 m = calibrate.metrics(mm_per_px, measured_edge_width_px, noise_px)        # -> tolerance, corner scale
 poly = contours.mask_to_polygon(part_mask, m, scale=6, origin=(x0, y0))   # bounded smoothing + corners
 vis = layers.visible_regions(parts, order_back_to_front)                  # gap-free colour regions
+reg, edges = regularize.regularize_polygon(poly, m)                      # simplest curve per edge
+flags = checks.overlap_report(parts, order, min_overlap=2.0)              # self-review numbers
+rows = review.review_sheet(art_crop, parts, edge_dict, origin=(x0, y0))   # numbered sheet for the user
 export.write_dxf(parts_mm, "front_view_parts.dxf", aci={...})             # splines split at corners
 ```
 

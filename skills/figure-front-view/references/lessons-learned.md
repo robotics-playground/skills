@@ -124,3 +124,62 @@ without touching anything else.
    body with clearance and pivot, tab + slot to the base.
 10. **Second artwork variant check**: the product sheet had 6 variants sharing the body; keep the
     body/accessory split so a new variant only re-fits the head/accessories.
+
+---
+
+## 5. Second retrospective: why ~27 review rounds for a simple figure
+
+The user's verdict: "a simple toy with basic geometry, but you needed my review and feedback a lot."
+Target for the next toy: **the same final quality in <= 3 user rounds** (approve spec -> approve one
+numbered decision sheet -> small touch-ups).
+
+### 5.1 Every round, classified by root cause
+
+| Root cause | Rounds | What the user had to say | Mechanism that would have caught it without the user |
+|---|---|---|---|
+| **Method not encoded** | 4 | research first; keep detail; only raster defects; measure the pixel | Now in SKILL.md phases 1-6 (done) |
+| **Construction knowledge missing** | 7 | separate accessories; jacket + hands as parts; arms = ONE ring; jacket + pants = one suit; face bigger, under the helmet; hidden face follows anatomy; suit up to the nose | Construction rules + `checks.overlap_report` (back parts must reach well under front parts), `checks.same_colour_neighbours` (merge candidates), ring = outer - inner default, print-photo seams for piece count |
+| **Edge regularity by hand** | 13 | fists notch + corners; straight V; taper; waist gap + smooth; sharper corner; gap corners + continuous legs; small bulge; circular chin x3; chin height | `regularize` (Hoshyari-style simplest curve per run + coherent-feature guard), corner rebuild, same-colour exclusion before fits, one numbered review sheet |
+| **Scope / trust** | 1 | "I told you fix the chin. Why change the head?" | `checks.changed_parts` before every publish |
+| **Ambiguity** | 2 | "two ovals" -> wrong build -> correction | Ask/sketch both readings first (evals: both with- and without-skill runs now ask) |
+
+Only ~4 of 27 rounds needed genuinely new information from the user (the 70 mm scale, "visible part
+follows the image", "suit to the nose", "artwork wins"). Everything else was knowable from the
+images, the print photo, or standard vectorization practice.
+
+### 5.2 Evidence that the fixes work (measured this session)
+- Running `regularize` on the *pre-correction* traces automatically produced: straight hand sides with
+  sharp shoulders, round thumbs, the notch between the fists kept, one continuous curve per outer and
+  inner leg edge, the crotch bulge kept with sharp gap corners, arcs for the helmet dome and boot toe.
+  Remaining miss: the left hip broke into several short pieces (a drawn hem step) - exactly what the
+  numbered sheet lets the user fix in one pass.
+- With-skill eval run on the original request (no human review): wrote the part spec first, read the
+  stacking order from the seams, made the arms ONE ring, jacket+pants+boots one piece, face continuing
+  under the helmet, fitted the chin circle with the shirt columns excluded, flagged thin face lines, and
+  asked 7 targeted questions. Several of these took the user 2-4 rounds each in the original session.
+
+### 5.3 The 3-round script for the next toy
+1. **Round 0 (no user):** understand -> part spec + construction rules -> calibrate -> unmix ->
+   structure fit -> trace -> `regularize` -> exact geometry where the print shows it ->
+   `checks` (overlap, gaps, slivers, thin, same-colour, scope) -> render overlays and run the
+   self-review question list (`checks.SELF_REVIEW_QUESTIONS`) on zoomed crops -> fix -> repeat until clean.
+2. **Round 1 (user):** show the part spec + stacking order + authority table + open questions (scale,
+   symmetry, artwork vs print conflicts, ring/loop readings, how face lines are made). One message.
+3. **Round 2 (user):** one review page with the numbered edge sheet (`review.review_sheet`): each edge
+   labelled line / arc / pieces / spline / corner, plus overlays. The user answers by number
+   ("7 sharp, 14 keep bulge, 23 one curve").
+4. **Round 3 (user):** touch-ups only; every change passes the scope guard.
+
+### 5.4 Construction rules for flat multi-colour figures (defaults, confirm in round 1)
+- Every colour region is its own body; same-coloured neighbours with no seam on the print are one piece.
+- A part behind another continues well under it (>= 1.5-2 mm, or to a natural landmark: face as a full
+  head under hair/helmet, jacket up behind the face to about the nose, shirt up behind the V-neck).
+- Loops/rings are one part (outer minus inner) unless the print shows two pieces; moving parts stay separate.
+- Visible outlines follow the image; hidden outlines follow anatomy/mechanics and must never show.
+- Shared boundaries use one geometry (jacket V-neck = cravat V), so there are no gaps or overlaps.
+
+### 5.5 Still open
+- Hip/hem steps and similar drawn micro-steps: decide corner vs smooth by asking on the sheet.
+- diffvg-style direct fitting against anti-aliased pixels could replace unmix + trace for flat art.
+- A VLM occlusion graph (LayerPeeler-style) could draft the stacking order automatically.
+- Evaluate on a second toy (blue-cap variant eval) and count user rounds as the success metric.

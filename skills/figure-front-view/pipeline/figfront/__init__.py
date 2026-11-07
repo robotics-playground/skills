@@ -10,5 +10,9 @@ geom       exact shapes: circles, oval rings, straight-line V, flat edge with bu
            sharp corners from tangents, continuous spline edges
 layers     stacking order -> gap-free visible regions; hidden-part completion helpers
 export     DXF (true splines split at corners, one layer per part) and SVG output
+regularize simplest faithful curve per edge (line < arc < spline), corners kept (Hoshyari 2018 / ShipShape)
+checks     automatic self-review: scope guard, overlap under front parts, gaps/slivers, thin features,
+           same-colour neighbours, and the self-review question list
+review     one consolidated numbered review sheet + legend for the user
 """
-__all__ = ["unmix", "calibrate", "contours", "geom", "layers", "export"]
+__all__ = ["unmix", "calibrate", "contours", "geom", "layers", "export", "regularize", "checks", "review"]

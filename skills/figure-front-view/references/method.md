@@ -54,6 +54,15 @@ Sub-pixel contours (Gaussian 0.23 px + marching squares) -> resample 0.25 px -> 
 direction, sides meet at >= 32 deg) -> rebuild corners at side-line intersections -> per-segment
 spline with sigma, accepted only if Hausdorff <= max shift (else less smoothing).
 
+## 7b. Regularization (`figfront.regularize`)
+Per boundary run between real corners, accept the simplest candidate that stays within the regularity
+tolerance (1/2 effective px) AND leaves no coherent one-signed residual longer than ~6x tol with a peak
+above 1/4 effective px (that would be a flattened drawn feature):
+`line < arc < line/arc pieces (dynamic programming, tangent joins) < cubic spline with fewest knots`.
+Output: regularized polygon + an edge report (kind, parameters, max deviation) used for the numbered
+review sheet (`figfront.review.review_sheet`). Mirror-symmetric edge pairs (`regularize.mirror_pairs`)
+are proposed to the user, not applied silently.
+
 ## 8. Exact geometry (only where the print shows it)
 - **Oval ring** (`geom.oval_ring`): fit outer/inner ellipse centres + radii to the silhouette.
 - **Straight V** (`geom.straight_v`): fit centre, width at chin line, width at V start, V start, tip to
@@ -70,7 +79,10 @@ spline with sigma, accepted only if Hausdorff <= max shift (else less smoothing)
 - **Hidden face**: `geom.face_shape` sized from the eye line (glasses), visible width + tuck, and the
   helmet opening; only the part covered by the helmet is added.
 
-## 9. Verify every round
+## 9. Verify every round (self-review before the user sees anything)
+Numbers: `checks.changed_parts` (scope), `checks.overlap_report` (back parts reach >= 1.5-2 mm under
+front parts), `checks.gaps_and_slivers`, `checks.thin_features`, `checks.same_colour_neighbours`.
+Pictures: answer every item of `checks.SELF_REVIEW_QUESTIONS` on zoomed pixel overlays.
 - Pixel overlays per changed feature (nearest-neighbour zoom x5..x14, outline in red).
 - Numbers: IoU per part vs its colour mask, whole-silhouette IoU, max shift (mm) per part,
   slivers < 0.3 mm^2 in visible regions, features thinner than 0.8 mm (nozzle 0.4 mm).
