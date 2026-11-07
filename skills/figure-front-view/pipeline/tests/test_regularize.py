@@ -76,3 +76,16 @@ def test_review_sheet_handles_all_edge_kinds(tmp_path):
     rows = review.review_sheet(bg, {'P': reg}, {'P': rep}, origin=(-10, -10), scale=4, out_png=str(tmp_path / 's.png'))
     json.dumps(rows)
     assert rows and (tmp_path / 's.png').exists()
+
+
+def test_drop_specks_removes_islands_and_pinholes_keeps_small_parts():
+    from figfront import contours
+    from shapely.geometry import MultiPolygon
+    body = box(0, 0, 20, 20).difference(Point(10, 10).buffer(0.2))          # pinhole
+    noisy = MultiPolygon([body] + [Point(30 + i, 30).buffer(0.25) for i in range(0, 20, 2)])
+    assert checks.specks({'SKIN': noisy}, 0.3)['SKIN']['islands'] == 10
+    clean = contours.drop_specks(noisy, 0.3)
+    assert clean.geom_type == 'Polygon' and len(clean.interiors) == 0
+    assert not checks.specks({'SKIN': clean}, 0.3)
+    nose = Point(0, 0).buffer(0.25)                                           # a real tiny part
+    assert not contours.drop_specks(nose, 0.3).is_empty

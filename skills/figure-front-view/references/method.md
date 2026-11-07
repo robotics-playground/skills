@@ -54,6 +54,12 @@ Sub-pixel contours (Gaussian 0.23 px + marching squares) -> resample 0.25 px -> 
 direction, sides meet at >= 32 deg) -> rebuild corners at side-line intersections -> per-segment
 spline with sigma, accepted only if Hausdorff <= max shift (else less smoothing).
 
+## 7a. Specks
+After tracing and before regularizing, run `contours.drop_specks(part, min_area)` on every part with
+`min_area = max(0.3 mm^2, (2 effective px)^2)` in the working units. Detail-rich parts (skin, hair,
+logos) otherwise keep dozens of compression islands and pinholes. A part that is itself tiny (nose dot,
+eye glint) is kept as one piece. Verify with `checks.specks(parts, min_area) == {}`.
+
 ## 7b. Regularization (`figfront.regularize`)
 Per boundary run between real corners, accept the simplest candidate that stays within the regularity
 tolerance (1/2 effective px) AND leaves no coherent one-signed residual longer than ~6x tol with a peak
@@ -80,7 +86,7 @@ are proposed to the user, not applied silently.
   helmet opening; only the part covered by the helmet is added.
 
 ## 9. Verify every round (self-review before the user sees anything)
-Numbers: `checks.changed_parts` (scope), `checks.overlap_report` (back parts reach >= 1.5-2 mm under
+Numbers: `checks.specks` (islands/pinholes), `checks.changed_parts` (scope), `checks.overlap_report` (back parts reach >= 1.5-2 mm under
 front parts), `checks.gaps_and_slivers`, `checks.thin_features`, `checks.same_colour_neighbours`.
 Pictures: answer every item of `checks.SELF_REVIEW_QUESTIONS` on zoomed pixel overlays.
 - Pixel overlays per changed feature (nearest-neighbour zoom x5..x14, outline in red).

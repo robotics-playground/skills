@@ -78,6 +78,20 @@ def same_colour_neighbours(parts: dict, colour: dict, touch_tol: float) -> list:
     return out
 
 
+def specks(parts: dict, min_area: float) -> dict:
+    """Islands and holes below `min_area` per part (should be empty after contours.drop_specks).
+    A part made only of pieces below the threshold is a deliberately small part, not a speck."""
+    from shapely.geometry import Polygon as _P
+    out = {}
+    for k, g in parts.items():
+        polys = [p for p in getattr(g, 'geoms', [g]) if not p.is_empty]
+        if not polys or all(p.area < min_area for p in polys) and len(polys) == 1: continue
+        isl = sum(1 for p in polys if p.area < min_area)
+        holes = sum(1 for p in polys for h in p.interiors if _P(h).area < min_area)
+        if isl or holes: out[k] = dict(islands=isl, holes=holes, pieces=len(polys))
+    return out
+
+
 SELF_REVIEW_QUESTIONS = [
     "Corners: is every vertex in the source drawn sharp, and are round tips (thumbs, toes) still round?",
     "Continuity: does every long edge read as ONE curve (no wobble) between real corners?",
@@ -90,4 +104,6 @@ SELF_REVIEW_QUESTIONS = [
     "Contamination: was any fit pulled by a same-colour neighbour (white shirt under a white chin)?",
     "Scope: did anything change that the user did not ask about (changed_parts)?",
     "Printability: any feature thinner than the nozzle allows (thin_features)?",
+    "Specks: any part with islands or pinholes below max(0.3 mm^2, (2 effective px)^2) (specks)? Remove them "
+    "with contours.drop_specks unless the part spec lists them as a real small feature.",
 ]

@@ -65,9 +65,9 @@ ROUND 3 (user)     touch-ups only, each passing the scope guard
 | **3. Calibrate the pixel** | `calibrate.metrics`: effective pixel, noise -> fidelity tolerance 1/4 eff px, regularity tolerance 1/2 eff px, corner scale 1 eff px. | Hand-pick tolerances. |
 | **4. Colour unmixing** | `unmix.classify` (pixel = paint or two-paint blend). | HSV thresholds. |
 | **5. Structure + layers** | Primitives only to partition same-coloured regions and complete hidden edges; back parts continue well under front parts. | Let a primitive replace a visible edge. |
-| **6. Trace + regularize** | Sub-pixel trace, disk morphology, `regularize.regularize_polygon`: corners where the boundary breaks, then line < arc < line/arc pieces < spline, keeping coherent drawn features. | Smooth beyond tolerance; corners on round tips. |
+| **6. Trace + regularize** | Sub-pixel trace, disk morphology, `contours.drop_specks` (islands/pinholes below max(0.3 mm², (2 eff px)²) unless listed as a small feature), `regularize.regularize_polygon`: corners where the boundary breaks, then line < arc < line/arc pieces < spline, keeping coherent drawn features. | Smooth beyond tolerance; corners on round tips; leave raster specks in a layer. |
 | **7. Exact geometry** | Where the print shows clean geometry: ring = outer - inner oval, straight panels, straight V, circular chin, shared edges between neighbours. | Geometry the print does not show. |
-| **8. Self-review** | `checks.changed_parts`, `overlap_report`, `gaps_and_slivers`, `thin_features`, `same_colour_neighbours`; then answer `checks.SELF_REVIEW_QUESTIONS` on zoomed pixel overlays. Fix and repeat. | Show the user anything that fails a check. |
+| **8. Self-review** | `checks.changed_parts`, `overlap_report`, `gaps_and_slivers`, `thin_features`, `same_colour_neighbours`, `specks`; then answer `checks.SELF_REVIEW_QUESTIONS` on zoomed pixel overlays. Fix and repeat. | Show the user anything that fails a check. |
 | **9. Ask once** | Round 1 questions; round 2 numbered sheet (`review.review_sheet`) on a published review page. | Iterate edge by edge with the user. |
 
 ## Construction rules for flat multi-colour figures (defaults; confirm in round 1)

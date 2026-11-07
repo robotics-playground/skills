@@ -115,3 +115,26 @@ def mask_to_polygon(mask, m, scale=1, origin=(0, 0), small=False):
         sr, _ = smooth_ring(r, m)
         if len(sr) >= 3: g = g.symmetric_difference(Polygon(sr).buffer(0))
     return g
+
+
+def drop_specks(geom, min_area: float, keep_whole_if_small: bool = True):
+    """Remove raster specks from a part: islands and holes smaller than `min_area` (same units as geom).
+
+    Why: tracing a part's colour region on low-resolution, compressed art leaves dozens of tiny islands
+    (one run produced 71 islands, mostly < 0.3 mm^2, in a single SKIN layer) and pinholes. They are
+    unprintable and noisy in CAD. A part that is itself tiny (a nose dot, an eye glint listed in the part
+    spec) is kept: if every piece is below the threshold, the largest one survives.
+    Suggested min_area: max(0.3 mm^2, (2 effective px)^2) - see calibrate.metrics.
+    """
+    from shapely.geometry import Polygon as _P, MultiPolygon as _MP
+    from shapely.ops import unary_union as _uu
+    polys = [p for p in getattr(geom, 'geoms', [geom]) if not p.is_empty]
+    if not polys: return geom
+    keep = []
+    for p in polys:
+        if p.area < min_area: continue
+        holes = [h for h in p.interiors if _P(h).area >= min_area]
+        keep.append(_P(p.exterior, holes))
+    if not keep and keep_whole_if_small:
+        big = max(polys, key=lambda q: q.area); keep = [_P(big.exterior)]
+    return _uu(keep) if keep else _P()

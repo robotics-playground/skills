@@ -183,3 +183,9 @@ images, the print photo, or standard vectorization practice.
 - diffvg-style direct fitting against anti-aliased pixels could replace unmix + trace for flat art.
 - A VLM occlusion graph (LayerPeeler-style) could draft the stacking order automatically.
 - Evaluate on a second toy (blue-cap variant eval) and count user rounds as the success metric.
+
+### 5.6 From the first skill evaluation (iteration 1)
+- With skill 100 % of checks vs 77 % without; biggest gain on a NEW figure (6/6 vs 3/6).
+- Missed by the checks: detail-rich head layers kept many raster specks (one SKIN layer: 71 islands,
+  mostly < 0.3 mm^2). Fixed with `contours.drop_specks` + `checks.specks` and a speck check in the evals.
+- Give every eval case its own inputs folder (a baseline run could see another case's files).
