@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: figure-front-view-new-variant-blue-cap
+expected_outcome: |
+  A part spec for the blue-cap figure (cap, hair, face, face lines, ears, suit, arm ring, hands, boots, base) with a stacking order; colour unmixing and a measured pixel tolerance; visible edges keep the drawn detail (cap peak, hair tufts, eyes); layered DXF (one layer per part) and an SVG/PNG front view with mm dimensions scaled to ~100 mm plate height and 70 mm base; checks shown as pixel overlays.

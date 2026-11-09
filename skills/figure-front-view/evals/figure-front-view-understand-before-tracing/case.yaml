@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: figure-front-view-understand-before-tracing
+expected_outcome: |
+  Before tracing: a written part spec (parts including accessories, colours, construction as a flat multi-colour plate in a base, stacking order read from seams visible on the print photo, which source wins for what), plus questions for the user (a real dimension / scale, artwork vs print conflicts). Then a front view built from that understanding, with the print photo used as evidence for construction.

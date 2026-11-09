@@ -1,0 +1,79 @@
+{
+ "CRAVAT": {
+  "corners_kept": 5,
+  "max_dev_px": 0.0,
+  "source": "exact straight-line geometry"
+ },
+ "JACKET": {
+  "corners_kept": 5,
+  "max_dev_px": 0.0,
+  "source": "exact straight-line geometry"
+ },
+ "PANTS": {
+  "corners_kept": 15,
+  "max_dev_px": 0.797
+ },
+ "BOOTS": {
+  "corners_kept": 13,
+  "max_dev_px": 0.594
+ },
+ "ARMS": {
+  "corners_kept": 0,
+  "max_dev_px": 0.0,
+  "source": "analytic two-oval model"
+ },
+ "HANDS": {
+  "corners_kept": 12,
+  "max_dev_px": 0.716
+ },
+ "FACE": {
+  "corners_kept": 1,
+  "max_dev_px": 0.269
+ },
+ "HELMET": {
+  "corners_kept": 4,
+  "max_dev_px": 0.541
+ },
+ "GLASSES": {
+  "corners_kept": 2,
+  "max_dev_px": 0.378
+ },
+ "EYEBROWS": {
+  "corners_kept": 0,
+  "max_dev_px": 0.234
+ },
+ "NOSE": {
+  "corners_kept": 0,
+  "max_dev_px": 0.31
+ },
+ "MOUTH": {
+  "corners_kept": 0,
+  "max_dev_px": 0.328
+ },
+ "FACE_chin_circle": {
+  "cx": 257.26,
+  "cy": 177.75,
+  "R": 54.7,
+  "join_y": 221.63
+ },
+ "FACE_hidden_shape": {
+  "eye_line_px": 196.16,
+  "half_width_px": 47.92,
+  "forehead_px": 37.75,
+  "chin_px": 39.83,
+  "tuck_px": 7.68
+ },
+ "SUIT_gap_top": {
+  "y_flat": 338.71489948664146,
+  "bulge_depth_px": 1.096131171706121,
+  "bulge_center_px": -3.8255260996171785,
+  "bulge_half_width_px": 14.043473472944866
+ },
+ "SUIT_legs_max_shift_px": 2.272,
+ "SUIT_lower_smoothing_max_shift_px": 1.94,
+ "SUIT": {
+  "corners_kept": 20,
+  "max_dev_px": 0.797,
+  "source": "jacket (exact) + pants (traced), merged"
+ }
+}

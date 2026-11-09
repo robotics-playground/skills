@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: figure-front-view-ambiguous-structure
+expected_outcome: |
+  Recognises that 'two ovals' has two plausible meanings (one ring = outer oval minus inner oval, vs two separate mirrored loops), notices the current arms are already one oval ring, and asks or shows both options before rebuilding instead of silently picking one.

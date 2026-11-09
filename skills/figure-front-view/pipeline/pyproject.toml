@@ -1,0 +1,12 @@
+[project]
+name = "figfront"
+version = "0.1.0"
+description = "Building blocks for reverse-engineering the front view of a flat figure/toy from artwork + print photos"
+requires-python = ">=3.10"
+dependencies = ["numpy", "scipy", "opencv-python-headless", "scikit-image", "shapely>=2", "ezdxf"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools]
+packages = ["figfront"]
