@@ -189,3 +189,46 @@ images, the print photo, or standard vectorization practice.
 - Missed by the checks: detail-rich head layers kept many raster specks (one SKIN layer: 71 islands,
   mostly < 0.3 mm^2). Fixed with `contours.drop_specks` + `checks.specks` and a speck check in the evals.
 - Give every eval case its own inputs folder (a baseline run could see another case's files).
+
+---
+
+## 6. Second project: "Fan figure" (same squat figure, video of a turning arm ring)
+
+Inputs: a 246 x 385 px crop of the same artwork, one straight-on print photo, a 15 s video (arm ring turns
+360 deg about the chest). Round 0 used the skill end to end: part spec, calibration (effective pixel 1.5 px),
+unmixing, symmetric masks, exact ring/jacket/cravat, outline builder, checks, review page with numbered
+edges. Then 4 user rounds, all about small drawn features or symmetry choices.
+
+| Round | User said | What the pipeline did | Root cause | Now in the skill |
+|---|---|---|---|---|
+| 2 | "This area not mapping good enough" (boots) | Ankle steps smoothed into S-curves | Disk opening over the boots; corner test needs >= 1 eff px sides; run smoothing | `fine_zone`, `pixels` staircase, method 7e |
+| 2 | "MOUTH should not Symmetry" | Lower lip mirror-averaged onto the axis | Symmetry applied to every part by default | `mirror_offset`, method 7d |
+| 2 | "ARMS connect to the HANDS" | Ring ran on behind the hands | Ring treated as a closed oval only | Construction rule, method 7f |
+| 2 | (self-found) leg curve moved 0.3 mm while fixing boots | Whole run refitted | No scope check inside the edited part | `changed_outside`, method 9a |
+| 3 | "bottom line of the hands should not be a continuous curve - two fists touching" | One arc | 0.6 px notch below regularity tolerance | Golden rule 9, method 7e |
+| 3 | "You not capture the sharp corner yet" (boots) | fine_zone helped, but 1-2 px steps still soft | Trace blur at the resolution limit | Measured staircase from 50 % crossings on both boots |
+| 3 | "The face details are not Symmetry. The face slightly turn" | Glasses/brows/nose mirrored | Same as round 2, applied per detail | Details from RAW masks, no mirror |
+| 4 | "The MOUTH (10) is a straight line. No need arc" | Arc stroke (R 23 mm, near straight) | Stroke type picked by fit, not asked | `strokes.line_stroke`; ask "straight or curved?" when R is large |
+
+### KEEP
+- Config + staged scripts (`examples/fan-figure/`): stage1 unmix/axis, stage2 masks/fits, stage3 geometry,
+  stage4 checks/exports/edge sheet, render, build_page. Each round re-runs in seconds.
+- Video frames decide construction for moving parts: what the moving part uncovers must be finished
+  geometry (jacket panel), and the stacking (head plate in front of the ring, body behind).
+- Artwork with the legs moved onto the body axis for every overlay: otherwise a 3 px drawing offset hides
+  real fit errors.
+- Keeping the previous round's parts pickle and diffing per part and per y band before every publish.
+- Republishing the same review page with a "Changes in round N" block and the edge-number mapping.
+
+### PROBLEMS
+- Edge numbers shift when a part gains corners; tell the user the new numbers each round. Better: number
+  new edges after the old ones, or key them by part + order.
+- The default "everything symmetric" from the user's memory note was right for the body and wrong for the
+  face details. Measure per part before applying a symmetry rule.
+- Overlap checks flag pairs that are both hidden behind a front part (face lines over hidden ring); read
+  them, do not just count them.
+
+### TRY NEXT TIME
+1. Run `mirror_offset` on every detail in round 0 and put the result in the round-1 questions.
+2. Zoom 16-20x on every small feature (ankles, notches, thumbs) during self-review, with the pixel grid.
+3. Ask stroke type (straight / arc) in round 1 for every thin line whose fitted radius is > 10x its length.

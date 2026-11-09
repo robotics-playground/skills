@@ -15,4 +15,4 @@ checks     automatic self-review: scope guard, overlap under front parts, gaps/s
            same-colour neighbours, and the self-review question list
 review     one consolidated numbered review sheet + legend for the user
 """
-__all__ = ["unmix", "calibrate", "contours", "geom", "layers", "export", "regularize", "checks", "review"]
+__all__ = ["unmix", "calibrate", "contours", "geom", "layers", "export", "regularize", "outline", "strokes", "pixels", "checks", "review"]

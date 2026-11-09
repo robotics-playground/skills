@@ -102,8 +102,53 @@ SELF_REVIEW_QUESTIONS = [
     "Pieces: are same-colour regions without a visible seam on the print merged (jacket + pants = suit)?",
     "Rings/loops: is a loop modelled as ONE ring (outer minus inner) unless the print shows two parts?",
     "Contamination: was any fit pulled by a same-colour neighbour (white shirt under a white chin)?",
-    "Scope: did anything change that the user did not ask about (changed_parts)?",
+    "Scope: did anything change that the user did not ask about (changed_parts), and inside the edited part, "
+    "outside the asked zone (changed_outside)?",
     "Printability: any feature thinner than the nozzle allows (thin_features)?",
     "Specks: any part with islands or pinholes below max(0.3 mm^2, (2 effective px)^2) (specks)? Remove them "
     "with contours.drop_specks unless the part spec lists them as a real small feature.",
+    "Short steps: do 1-4 px drawn steps (ankle ledges, cuffs, hems) keep square corners on the zoomed overlay, "
+    "or did the corner test (sides >= 1 effective px) and smoothing round them into S-curves?",
+    "Touching shapes: where two shapes meet (two fists, two feet), is there a notch with a sharp corner, not "
+    "one continuous curve?",
+    "Drawn asymmetry: does mirror_offset of each face detail stay under ~0.5 effective px? If not, the face is "
+    "drawn turned: keep the details as drawn (mirror averaging shrinks thin strokes).",
+    "Joins of moving parts: does each attached part end exactly on its partner's edge (arm ends on the hand "
+    "sides), with no step and no band running on behind it?",
+    "Tangency: is every join below 20 deg truly tangent (tangent_breaks), with real corners well above it?",
 ]
+
+
+def changed_outside(prev, new, band_y, tol: float = 1e-3) -> float:
+    """Scope guard INSIDE one part: area of change outside the y band (y0, y1) the user asked about.
+    A refit of one edge run can move the whole run (fixing a boot moved the leg curve 0.3 mm)."""
+    from shapely.geometry import box
+    big = 1e6
+    out = prev.symmetric_difference(new).difference(box(-big, band_y[0], big, band_y[1]))
+    return 0.0 if out.area <= tol else float(out.area)
+
+
+def mirror_offset(mask, axis, scale):
+    """Largest drawn asymmetry of a feature mask (working grid, `scale`x), as (dx, dy) in image px.
+    Components crossing the axis: centroid offset from it. Side components: centroid difference to the
+    mirrored partner. Above ~0.5 effective px the artist drew it asymmetric (a turned face)."""
+    from scipy import ndimage as ndi
+    lab, n = ndi.label(mask)
+    if n == 0: return (0.0, 0.0)
+    idx = range(1, n + 1)
+    cents = [np.array(ndi.center_of_mass(lab == i))[::-1] / scale + 0.5 / scale for i in idx]
+    sizes = np.asarray(ndi.sum(mask, lab, idx))
+    best = (0.0, 0.0)
+    for i, c in enumerate(cents):
+        xs = np.nonzero(lab == i + 1)[1]; x0, x1 = xs.min() / scale, (xs.max() + 1) / scale
+        if x0 < axis < x1:
+            off = (c[0] - axis, 0.0)
+        elif c[0] > axis:
+            mir = np.array([2 * axis - c[0], c[1]])
+            others = [cc for j, cc in enumerate(cents) if cc[0] < axis and abs(sizes[j] - sizes[i]) < 0.5 * sizes[i]]
+            if not others: continue
+            cc = min(others, key=lambda q: np.linalg.norm(q - mir)); off = tuple(cc - mir)
+        else:
+            continue
+        if np.hypot(*off) > np.hypot(*best): best = (float(off[0]), float(off[1]))
+    return best

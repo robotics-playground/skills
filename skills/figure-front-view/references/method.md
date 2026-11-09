@@ -69,6 +69,43 @@ Output: regularized polygon + an edge report (kind, parameters, max deviation) u
 review sheet (`figfront.review.review_sheet`). Mirror-symmetric edge pairs (`regularize.mirror_pairs`)
 are proposed to the user, not applied silently.
 
+## 7c. Outline builder: lines + tangent arcs (`figfront.outline`)
+Users who rebuild in CAD want LINE and ARC entities, sharp only at real corners. `outline.build(ring, m)`:
+corners as in 7 (plus forced vertices `corners_at` for exact geometry such as a V-neck), then per run:
+one line or one arc if faithful (regularity tolerance), else a biarc chain (arcs meeting tangent) fitted to
+the lightly smoothed trace, split at the worst point until within tolerance; near-flat arcs become lines.
+Never use regularize's line/arc "pieces": their joins are not tangent (visible kinks on hips and legs).
+Check with `outline.tangent_breaks(segs)`: smooth joins < 1 deg, corners > 20 deg.
+
+## 7d. Symmetry (decide per part, by measurement)
+- Symmetric parts: average the mask with its mirror (legs drawn off-axis are first moved onto the body
+  axis), then `outline.symmetric_part`: the right half is fitted and mirrored; ends that belong on the axis
+  are snapped onto it and the halves welded. Bugs seen: the open half-chain must keep its last point, and
+  runs must wrap forward once around the ring, else thin wedges/slits appear along the axis.
+- Details: `checks.mirror_offset(mask, axis, scale)`. Offset > ~0.5 effective px = drawn asymmetric (a face
+  drawn slightly turned): keep those details as drawn, from the RAW masks. Mirror averaging of offset thin
+  strokes shrinks and moves them. Default for faces: helmet/face outline symmetric, details as drawn; confirm
+  in round 1.
+
+## 7e. Small drawn features at the resolution limit
+The corner test needs straight sides of >= 1 effective px; tracing blurs 1-2 px; smoothing (sigma ~1 eff px)
+flattens the rest. So:
+- **Short steps** (ankle ledges 2-4 px, 1-3 px steps): measure them on the pixels with
+  `pixels.coverage` + `row_crossing` / `col_crossing` (50 % crossings, ~0.1 px), on both mirrored copies,
+  averaged; build the staircase from lines with sharp corners. For a gentler fix, `outline.build(...,
+  fine_zone=(y0, y1))` adds Douglas-Peucker step corners (turn >= 40 deg, sides >= 1.2 px) and fits that zone
+  at the fidelity budget without smoothing. Do not run disk openings over such a zone.
+- **Touching shapes** (two fists, two feet): measure the edge profile per column; one arc per shape through
+  the shared notch point and the outer corner, best circle in between; sharp notch on the axis.
+- **Thin lines** (brows, lips): `strokes.line_stroke` or `strokes.arc_stroke` (centre line from per-column
+  centroids, width from area, round ends). Ask "straight or curved?" if the centre-line radius is large.
+
+## 7f. Joins between parts that move together
+Arm ends finish exactly on the hand side edge (both corners), so arms + hands are one closed loop. Keep the
+visible ring edges as the free-fit ellipses; inside the zone where the artwork is black on black (ring over
+the jacket) leave each ellipse tangentially and run a biarc into the hand corner, meeting it at the
+ellipse's own angle. Forcing the whole ellipse through the corners moved the visible edge 0.5 mm.
+
 ## 8. Exact geometry (only where the print shows it)
 - **Oval ring** (`geom.oval_ring`): fit outer/inner ellipse centres + radii to the silhouette.
 - **Straight V** (`geom.straight_v`): fit centre, width at chin line, width at V start, V start, tip to
@@ -94,10 +131,17 @@ Pictures: answer every item of `checks.SELF_REVIEW_QUESTIONS` on zoomed pixel ov
   slivers < 0.3 mm^2 in visible regions, features thinner than 0.8 mm (nozzle 0.4 mm).
 - Untouched-part diff (see lessons-learned, Try #6).
 
+## 9a. Scope-safe edits (one zone of one part)
+Re-running the builder on a part refits whole runs: fixing a boot moved the hip 0.3 mm. Instead keep the
+approved segment chain, split it where it enters the asked zone (`y` band), and bridge with one tangent arc
+(`outline.arc_from`) into the new zone segments; corners stay where the zone has them. Prove it with
+`checks.changed_outside(prev, new, (y0, y1)) == 0` plus `changed_parts` for the other parts. Keep the
+previous version's pickle (`parts_px_roundN.pkl`) for this.
+
 ## 10. Export
 - mm transform: centre the figure axis on the base, sole line = base top.
-- `*_parts.dxf`: complete parts per layer, SPLINE fit-point curves split at corners, LINE for
-  straight runs (`figfront.export.write_dxf`). Per-part DXFs too.
+- `*_parts.dxf`: complete parts per layer from the outline segments: LINE, ARC (y flips: angle -> -angle,
+  sweep sign flips) and ELLIPSE with start/end parameters for exact ovals. Per-part DXFs too.
 - `*_print_regions_visible.dxf`: `layers.visible_regions` in stacking order.
 - SVG: assembled view with dimensions (overall, plate, base, head width, arm span) and a parts sheet.
 - Review page: overlay slider over the artwork pixels, highlight-on-hover from the parts list.

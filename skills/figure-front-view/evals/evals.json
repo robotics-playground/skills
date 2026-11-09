@@ -6,33 +6,99 @@
       "id": 0,
       "name": "understand-before-tracing",
       "prompt": "I want to reverse engineer this toy. Here is the product image (perfectly straight) and two photos of the printed one. Make me a front view I can use to rebuild it.",
-      "files": ["artwork.png", "print_front.jpg", "print_hand.jpg"],
+      "files": [
+        "artwork.png",
+        "print_front.jpg",
+        "print_hand.jpg"
+      ],
       "expected_output": "Starts with a written part spec (parts incl. accessories, colours, stacking order read from seams on the print, sources/authority, open questions such as one real dimension) and asks/confirms before fitting; does not immediately trace pixels.",
-      "assertions": ["writes a part spec first", "asks for or states a scale reference", "uses the print photo for construction/stacking"]
+      "assertions": [
+        "writes a part spec first",
+        "asks for or states a scale reference",
+        "uses the print photo for construction/stacking"
+      ]
     },
     {
       "id": 1,
       "name": "keep-detail-remove-only-raster-defects",
       "prompt": "The shape detail, pose and face are important - don't remove them. Only ignore the defects that come from the raster image.",
-      "files": ["artwork.png"],
+      "files": [
+        "artwork.png"
+      ],
       "expected_output": "Uses colour unmixing (not HSV thresholds), measures the effective pixel and noise, derives a tolerance (~1/4 effective px), keeps small real features (notch between fists, thumb corners), reports max shift in mm per part.",
-      "assertions": ["measures pixel width/edge spread", "tolerance derived not guessed", "pixel-level overlay shown"]
+      "assertions": [
+        "measures pixel width/edge spread",
+        "tolerance derived not guessed",
+        "pixel-level overlay shown"
+      ]
     },
     {
       "id": 2,
       "name": "edge-level-edit-scope",
       "prompt": "The line at the chin needs to be higher to match the image.",
-      "files": ["front_view.png"],
+      "files": [
+        "front_view.png"
+      ],
       "expected_output": "Measures the face/jacket edge excluding same-coloured shirt pixels, fits the chin, changes only the chin; the forehead/other parts are bit-identical to the previous version.",
-      "assertions": ["only the requested edge changes", "same-colour neighbour excluded"]
+      "assertions": [
+        "only the requested edge changes",
+        "same-colour neighbour excluded"
+      ]
     },
     {
       "id": 3,
       "name": "ambiguous-structure",
       "prompt": "The arms are made from two ovals.",
-      "files": ["front_view.png"],
+      "files": [
+        "front_view.png"
+      ],
       "expected_output": "Recognises the ambiguity (one ring = outer oval minus inner oval, vs two mirrored loops) and asks or shows both before rebuilding.",
-      "assertions": ["asks or shows both interpretations"]
+      "assertions": [
+        "asks or shows both interpretations"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "small-drawn-steps-and-notches",
+      "prompt": "The boots are not mapped well enough - you did not capture the sharp corners. And the bottom line of the hands should not be a continuous curve, the pose is two fists touching.",
+      "files": [
+        "front_view.png",
+        "artwork.png"
+      ],
+      "expected_output": "Zooms 16-20x on the ankles and the hands with the pixel grid; measures the 1-4 px ankle steps from 50 % coverage crossings on both boots (or fine_zone corners) and builds square corners; builds the hands bottom as one arc per fist meeting at a sharp notch; proves with changed_outside that the legs above the boots and the rest of the hands did not move.",
+      "assertions": [
+        "square corners on short steps",
+        "two arcs with a notch",
+        "scope checked inside the edited part"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "turned-face-details",
+      "prompt": "The face details are not symmetric. The face is slightly turned.",
+      "files": [
+        "front_view.png",
+        "artwork.png"
+      ],
+      "expected_output": "Keeps helmet and face outline symmetric; rebuilds glasses, brows, nose and mouth from the raw (unmirrored) masks; reports mirror_offset per detail; thin lines as strokes; nothing else changes.",
+      "assertions": [
+        "details as drawn, outline still symmetric",
+        "uses raw masks not mirror averages",
+        "other parts unchanged"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "moving-parts-join",
+      "prompt": "The arms should connect to the hands.",
+      "files": [
+        "front_view.png"
+      ],
+      "expected_output": "Arm ends finish exactly on the hand side edges (arms + hands one closed loop); visible ring edges keep the measured ellipses; the hidden black-on-black zone gets a tangent join; reports the largest departure from the oval; or asks if the ring should continue behind the hands.",
+      "assertions": [
+        "arm edges end on the hand corners",
+        "visible ring edge unchanged"
+      ]
     }
   ]
 }
